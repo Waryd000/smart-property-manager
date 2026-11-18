@@ -1,1 +1,64 @@
-{% extends "base.html" %}{% block content %}<h2>Management dashboard</h2><p class="text-muted">Property operations overview · UGX</p><div class="row g-3"><div class="col-6 col-lg-3"><div class="card card-body"><small>Properties</small><h2>{{ property_count }}</h2></div></div><div class="col-6 col-lg-3"><div class="card card-body"><small>Rental units</small><h2>{{ unit_count }}</h2></div></div><div class="col-6 col-lg-3"><div class="card card-body"><small>Occupied units</small><h2>{{ occupied_count }}</h2></div></div><div class="col-6 col-lg-3"><div class="card card-body"><small>Tenants</small><h2>{{ tenant_count }}</h2></div></div><div class="col-6 col-lg-3"><div class="card card-body"><small>Outstanding rent</small><h4>UGX {{ outstanding|floatformat:0 }}</h4></div></div><div class="col-6 col-lg-3"><div class="card card-body"><small>Overdue charges</small><h2>{{ overdue_count }}</h2></div></div></div><div class="mt-4"><h4>Recent verified payments</h4><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Reference</th><th>Tenant</th><th>Amount</th><th>Verified</th></tr></thead><tbody>{% for p in recent_payments %}<tr><td>{{ p.bank_reference }}</td><td>{{ p.tenant }}</td><td>UGX {{ p.amount|floatformat:0 }}</td><td>{{ p.verified_at }}</td></tr>{% empty %}<tr><td colspan="4">No verified payments yet.</td></tr>{% endfor %}</tbody></table></div></div>{% endblock %}
+{% extends "base.html" %}
+{% block content %}
+<h2>Management dashboard</h2>
+<p class="text-muted">Property operations overview · UGX</p>
+
+{% if spreadsheet_review_flags %}
+<div class="alert alert-warning border-warning shadow-sm" role="alert">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+    <h4 class="alert-heading mb-0">Spreadsheet records to verify</h4>
+    <span class="badge text-bg-warning">{{ spreadsheet_review_flags|length }} pending verification</span>
+  </div>
+  <p class="mb-3">
+    These entries were found in the latest Sir Apollo tenant register in
+    <strong>NAHA ASSETS 11234.xlsx</strong>. They are reminders only:
+    current occupancy has not yet been confirmed, and they have not been
+    added as active tenant records.
+  </p>
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered align-middle bg-white mb-2">
+      <thead class="table-light">
+        <tr><th>Property</th><th>Unit</th><th>Name in spreadsheet</th><th>What needs checking</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        {% for flag in spreadsheet_review_flags %}
+        <tr>
+          <td>{{ flag.property }}</td>
+          <td><strong>{{ flag.unit_number }}</strong></td>
+          <td>{{ flag.listed_name }}</td>
+          <td>{{ flag.issue }}</td>
+          <td><small>{{ flag.source }}</small></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="mb-0 small"><strong>Action:</strong> Confirm these two records before treating either tenancy as active.</p>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-6 col-lg-3"><div class="card card-body"><small>Properties</small><h2>{{ property_count }}</h2></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small>Rental units</small><h2>{{ unit_count }}</h2></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small>Occupied units</small><h2>{{ occupied_count }}</h2></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small>Tenants</small><h2>{{ tenant_count }}</h2></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small>Outstanding rent</small><h4>UGX {{ outstanding|floatformat:0 }}</h4></div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body"><small>Overdue charges</small><h2>{{ overdue_count }}</h2></div></div>
+</div>
+
+<div class="mt-4">
+  <h4>Recent verified payments</h4>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead><tr><th>Reference</th><th>Tenant</th><th>Amount</th><th>Verified</th></tr></thead>
+      <tbody>
+        {% for p in recent_payments %}
+        <tr><td>{{ p.bank_reference }}</td><td>{{ p.tenant }}</td><td>UGX {{ p.amount|floatformat:0 }}</td><td>{{ p.verified_at }}</td></tr>
+        {% empty %}
+        <tr><td colspan="4">No verified payments yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
