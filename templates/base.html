@@ -42,6 +42,11 @@
     .spm-table td { padding-top:14px; padding-bottom:14px; vertical-align:middle; border-bottom-color:#f0f2f7; }
     .spm-table tr:last-child td { border-bottom:0; }
     .spm-user-dot { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:#edf1ff; color:#3157d5; font-weight:700; }
+    .spm-content form input:not([type=checkbox]):not([type=radio]):not([type=hidden]),
+    .spm-content form select, .spm-content form textarea { display:block; width:100%; padding:.68rem .8rem; border:1px solid #dfe5ef; border-radius:9px; background:#fff; color:var(--spm-ink); }
+    .spm-content form input:focus, .spm-content form select:focus, .spm-content form textarea:focus { outline:0; border-color:#8199ee; box-shadow:0 0 0 .2rem rgba(49,87,213,.12); }
+    .spm-content form input[type=checkbox], .spm-content form input[type=radio] { margin-right:.4rem; }
+    .spm-content form label { color:#36445c; }
     .spm-mobile-brand { display:none; }
     @media (max-width: 991.98px) {
       .spm-sidebar { display:none; }
@@ -92,6 +97,17 @@
         <strong>Smart Property Manager</strong>
       </div>
       <div class="d-none d-lg-block text-secondary small"><i class="bi bi-calendar3 me-2"></i>{% now "l, d F Y" %}</div>
+      <div class="dropdown d-lg-none">
+        <button class="btn btn-light border" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Open navigation"><i class="bi bi-list fs-5"></i></button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2">
+          <li><a class="dropdown-item rounded-2" href="/"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a></li>
+          <li><a class="dropdown-item rounded-2" href="/properties/"><i class="bi bi-buildings me-2"></i>Properties</a></li>
+          <li><a class="dropdown-item rounded-2" href="/tenants/"><i class="bi bi-people me-2"></i>Tenants</a></li>
+          <li><a class="dropdown-item rounded-2" href="/rent/"><i class="bi bi-receipt me-2"></i>Rent management</a></li>
+          <li><a class="dropdown-item rounded-2" href="/payments/"><i class="bi bi-wallet2 me-2"></i>Payments</a></li>
+          {% if request.user.is_staff %}<li><hr class="dropdown-divider"></li><li><a class="dropdown-item rounded-2" href="/admin/"><i class="bi bi-gear me-2"></i>Admin settings</a></li>{% endif %}
+        </ul>
+      </div>
       <div class="d-flex align-items-center gap-3">
         <div class="text-end d-none d-sm-block">
           <div class="fw-semibold small">{{ request.user.get_full_name|default:request.user.username }}</div>
