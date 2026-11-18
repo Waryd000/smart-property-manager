@@ -6,7 +6,7 @@ from properties.models import Unit
 
 class Tenant(TimeStampedModel):
     full_name = models.CharField(max_length=160)
-    phone = models.CharField(max_length=30)
+    phone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True)
     identification_reference = models.CharField(max_length=100, blank=True)
     emergency_contact = models.CharField(max_length=160, blank=True)
