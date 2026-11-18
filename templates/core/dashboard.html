@@ -10,15 +10,13 @@
     <span class="badge text-bg-warning">{{ spreadsheet_review_flags|length }} pending verification</span>
   </div>
   <p class="mb-3">
-    These entries were found in the latest Sir Apollo tenant register in
-    <strong>NAHA ASSETS 11234.xlsx</strong>. They are reminders only:
-    current occupancy has not yet been confirmed, and they have not been
-    added as active tenant records.
+    These entries come from the latest register in <strong>NAHA ASSETS 11234.xlsx</strong>.
+    Confirm each item before relying on its unit number, current occupancy, tenant identity or historical account figures.
   </p>
   <div class="table-responsive">
     <table class="table table-sm table-bordered align-middle bg-white mb-2">
       <thead class="table-light">
-        <tr><th>Property</th><th>Unit</th><th>Name in spreadsheet</th><th>What needs checking</th><th>Source</th></tr>
+        <tr><th>Property</th><th>Unit / source ID</th><th>Name in spreadsheet</th><th>What needs checking</th><th>Source</th></tr>
       </thead>
       <tbody>
         {% for flag in spreadsheet_review_flags %}
@@ -33,7 +31,7 @@
       </tbody>
     </table>
   </div>
-  <p class="mb-0 small"><strong>Action:</strong> Confirm these two records before treating either tenancy as active.</p>
+  <p class="mb-0 small"><strong>Action:</strong> Review these records before confirming the related occupancy or financial information.</p>
 </div>
 {% endif %}
 
