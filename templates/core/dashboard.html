@@ -1,62 +1,166 @@
 {% extends "base.html" %}
+{% block title %}Dashboard · Smart Property Manager{% endblock %}
 {% block content %}
-<h2>Management dashboard</h2>
-<p class="text-muted">Property operations overview · UGX</p>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <div class="spm-eyebrow">Overview</div>
+    <h1 class="spm-page-title">Management dashboard</h1>
+    <p class="spm-subtitle">A clear view of your properties, tenants and rental operations.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="/properties/" class="btn btn-outline-primary"><i class="bi bi-buildings me-2"></i>View properties</a>
+    <a href="/tenants/" class="btn btn-primary"><i class="bi bi-people me-2"></i>Manage tenants</a>
+  </div>
+</div>
 
 {% if spreadsheet_review_flags %}
-<div class="alert alert-warning border-warning shadow-sm" role="alert">
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
-    <h4 class="alert-heading mb-0">Spreadsheet records to verify</h4>
-    <span class="badge text-bg-warning">{{ spreadsheet_review_flags|length }} pending verification</span>
+<section class="alert alert-warning border-0 shadow-sm rounded-4 p-3 p-lg-4 mb-4" role="alert">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <span class="d-inline-grid place-items-center rounded-3 bg-warning-subtle text-warning-emphasis" style="width:42px;height:42px"><i class="bi bi-clipboard2-check fs-5"></i></span>
+      <div>
+        <h2 class="h5 mb-0">Records needing your attention</h2>
+        <small class="text-secondary">Check these imported spreadsheet entries</small>
+      </div>
+    </div>
+    <span class="badge rounded-pill text-bg-warning px-3 py-2">{{ spreadsheet_review_flags|length }} pending review</span>
   </div>
-  <p class="mb-3">
-    These entries come from the latest register in <strong>NAHA ASSETS 11234.xlsx</strong>.
-    Confirm each item before relying on its unit number, current occupancy, tenant identity or historical account figures.
+  <p class="small text-secondary mb-3">
+    These entries come from <strong>NAHA ASSETS 11234.xlsx</strong>. Confirm the unit number, tenant identity and current occupancy before treating them as verified records.
   </p>
-  <div class="table-responsive">
-    <table class="table table-sm table-bordered align-middle bg-white mb-2">
-      <thead class="table-light">
-        <tr><th>Property</th><th>Unit / source ID</th><th>Name in spreadsheet</th><th>What needs checking</th><th>Source</th></tr>
-      </thead>
+  <div class="table-responsive bg-white rounded-3 border">
+    <table class="table spm-table table-sm mb-0">
+      <thead><tr><th>Property</th><th>Unit / source ID</th><th>Name in spreadsheet</th><th>Review note</th><th>Source</th></tr></thead>
       <tbody>
         {% for flag in spreadsheet_review_flags %}
         <tr>
-          <td>{{ flag.property }}</td>
-          <td><strong>{{ flag.unit_number }}</strong></td>
+          <td class="fw-semibold text-dark">{{ flag.property }}</td>
+          <td><span class="badge text-bg-light border text-dark">{{ flag.unit_number }}</span></td>
           <td>{{ flag.listed_name }}</td>
-          <td>{{ flag.issue }}</td>
-          <td><small>{{ flag.source }}</small></td>
+          <td class="small">{{ flag.issue }}</td>
+          <td class="small text-secondary">{{ flag.source }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-  <p class="mb-0 small"><strong>Action:</strong> Review these records before confirming the related occupancy or financial information.</p>
-</div>
+</section>
 {% endif %}
 
-<div class="row g-3">
-  <div class="col-6 col-lg-3"><div class="card card-body"><small>Properties</small><h2>{{ property_count }}</h2></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small>Rental units</small><h2>{{ unit_count }}</h2></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small>Occupied units</small><h2>{{ occupied_count }}</h2></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small>Tenants</small><h2>{{ tenant_count }}</h2></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small>Outstanding rent</small><h4>UGX {{ outstanding|floatformat:0 }}</h4></div></div>
-  <div class="col-6 col-lg-3"><div class="card card-body"><small>Overdue charges</small><h2>{{ overdue_count }}</h2></div></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="spm-card spm-stat">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="spm-stat-label">Properties</span>
+        <span class="spm-stat-icon bg-primary-subtle text-primary"><i class="bi bi-buildings"></i></span>
+      </div>
+      <div class="spm-stat-value">{{ property_count }}</div>
+      <div class="small text-secondary mt-2">Registered properties</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="spm-card spm-stat">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="spm-stat-label">Rental units</span>
+        <span class="spm-stat-icon bg-info-subtle text-info-emphasis"><i class="bi bi-door-closed"></i></span>
+      </div>
+      <div class="spm-stat-value">{{ unit_count }}</div>
+      <div class="small text-secondary mt-2">Units across properties</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="spm-card spm-stat">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="spm-stat-label">Occupied units</span>
+        <span class="spm-stat-icon bg-success-subtle text-success"><i class="bi bi-house-check"></i></span>
+      </div>
+      <div class="spm-stat-value">{{ occupied_count }}</div>
+      <div class="small text-secondary mt-2">Currently marked occupied</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="spm-card spm-stat">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="spm-stat-label">Tenants</span>
+        <span class="spm-stat-icon bg-warning-subtle text-warning-emphasis"><i class="bi bi-people"></i></span>
+      </div>
+      <div class="spm-stat-value">{{ tenant_count }}</div>
+      <div class="small text-secondary mt-2">Registered tenant profiles</div>
+    </div>
+  </div>
 </div>
 
-<div class="mt-4">
-  <h4>Recent verified payments</h4>
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="spm-card p-3 p-lg-4 h-100">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div class="spm-eyebrow">Rental accounts</div>
+          <h2 class="h5 fw-bold mb-1">Rent overview</h2>
+          <p class="text-secondary small mb-0">Based on rent charges currently recorded in the system.</p>
+        </div>
+        <span class="spm-stat-icon bg-primary-subtle text-primary"><i class="bi bi-cash-stack"></i></span>
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-7">
+          <div class="rounded-3 bg-light p-3 h-100">
+            <div class="small text-secondary fw-semibold">Outstanding rent</div>
+            <div class="fs-3 fw-bold mt-2">UGX {{ outstanding|floatformat:0 }}</div>
+            <div class="small text-secondary mt-1">Current recorded balance</div>
+          </div>
+        </div>
+        <div class="col-sm-5">
+          <div class="rounded-3 bg-light p-3 h-100">
+            <div class="small text-secondary fw-semibold">Overdue charges</div>
+            <div class="fs-3 fw-bold mt-2">{{ overdue_count }}</div>
+            <div class="small text-secondary mt-1">Charges past their due date</div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a href="/rent/" class="btn btn-sm btn-outline-primary">Open rent management <i class="bi bi-arrow-right ms-1"></i></a>
+        <a href="/payments/" class="btn btn-sm btn-light border">View payments</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="spm-card p-3 p-lg-4 h-100">
+      <div class="spm-eyebrow">Shortcuts</div>
+      <h2 class="h5 fw-bold mb-3">Quick actions</h2>
+      <div class="d-grid gap-2">
+        <a href="/properties/" class="btn btn-light border text-start py-3"><i class="bi bi-buildings text-primary me-2"></i><strong>Properties and units</strong><span class="d-block small text-secondary ms-4">View property registers and unit status</span></a>
+        <a href="/tenants/" class="btn btn-light border text-start py-3"><i class="bi bi-person-lines-fill text-primary me-2"></i><strong>Tenant register</strong><span class="d-block small text-secondary ms-4">View tenants and their rental units</span></a>
+        <a href="/payments/" class="btn btn-light border text-start py-3"><i class="bi bi-wallet2 text-primary me-2"></i><strong>Payment records</strong><span class="d-block small text-secondary ms-4">Review recorded payment activity</span></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="spm-card p-3 p-lg-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <div class="spm-eyebrow">Recent activity</div>
+      <h2 class="h5 fw-bold mb-0">Recently verified payments</h2>
+    </div>
+    <a href="/payments/" class="btn btn-sm btn-outline-secondary">All payments <i class="bi bi-arrow-right ms-1"></i></a>
+  </div>
   <div class="table-responsive">
-    <table class="table table-striped">
-      <thead><tr><th>Reference</th><th>Tenant</th><th>Amount</th><th>Verified</th></tr></thead>
+    <table class="table spm-table mb-0">
+      <thead><tr><th>Bank reference</th><th>Tenant</th><th>Amount</th><th>Verified date</th><th>Status</th></tr></thead>
       <tbody>
         {% for p in recent_payments %}
-        <tr><td>{{ p.bank_reference }}</td><td>{{ p.tenant }}</td><td>UGX {{ p.amount|floatformat:0 }}</td><td>{{ p.verified_at }}</td></tr>
+        <tr>
+          <td class="fw-semibold">{{ p.bank_reference }}</td>
+          <td>{{ p.tenant }}</td>
+          <td class="fw-semibold">UGX {{ p.amount|floatformat:0 }}</td>
+          <td>{{ p.verified_at|date:"d M Y, H:i" }}</td>
+          <td><span class="badge rounded-pill text-bg-success-subtle text-success-emphasis">Verified</span></td>
+        </tr>
         {% empty %}
-        <tr><td colspan="4">No verified payments yet.</td></tr>
+        <tr><td colspan="5" class="text-center text-secondary py-5"><i class="bi bi-receipt-cutoff fs-3 d-block mb-2"></i>No verified payments recorded yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-</div>
+</section>
 {% endblock %}

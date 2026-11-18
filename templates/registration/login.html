@@ -1,1 +1,42 @@
-<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Login - Smart Property Manager</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"></head><body class="bg-light"><div class="container" style="max-width:420px;margin-top:10vh"><div class="card shadow-sm"><div class="card-body p-4"><h3>Smart Property Manager</h3><p class="text-muted">Manager and staff sign in</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary w-100">Sign in</button></form></div></div></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Smart Property Manager</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body{min-height:100vh;background:linear-gradient(135deg,#17243a 0%,#253d70 55%,#3157d5 100%);display:grid;place-items:center;padding:24px;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+    .login-card{max-width:440px;width:100%;background:#fff;border:0;border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.22);overflow:hidden}
+    .brand-icon{width:52px;height:52px;display:grid;place-items:center;border-radius:15px;background:#3157d5;color:#fff;font-size:1.5rem}
+    .form-control{padding:.75rem .85rem;border-color:#dfe5ef;border-radius:10px}
+    input[type=text],input[type=password]{display:block;width:100%;padding:.75rem .85rem;border:1px solid #dfe5ef;border-radius:10px;background:#fff}
+    input[type=text]:focus,input[type=password]:focus{outline:0;border-color:#8199ee;box-shadow:0 0 0 .2rem rgba(49,87,213,.12)}
+    .btn-primary{background:#3157d5;border-color:#3157d5;padding:.75rem;border-radius:10px;font-weight:650}
+  </style>
+</head>
+<body>
+  <main class="login-card">
+    <div class="p-4 p-sm-5">
+      <div class="brand-icon mb-4"><i class="bi bi-buildings"></i></div>
+      <div class="text-uppercase text-primary fw-bold small mb-2" style="letter-spacing:.1em">Property operations</div>
+      <h1 class="h3 fw-bold mb-2">Welcome back</h1>
+      <p class="text-secondary mb-4">Sign in to manage your properties, tenants and rental records.</p>
+      {% if form.errors %}<div class="alert alert-danger small">Your username or password was not recognised. Please try again.</div>{% endif %}
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<div class="small text-danger mt-1">{{ error }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+        <button class="btn btn-primary w-100 mt-2" type="submit">Sign in <i class="bi bi-arrow-right ms-1"></i></button>
+      </form>
+    </div>
+    <div class="px-4 px-sm-5 py-3 bg-light border-top small text-secondary"><i class="bi bi-shield-lock me-2"></i>Secure access for authorised managers and staff</div>
+  </main>
+</body>
+</html>
