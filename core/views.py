@@ -19,24 +19,25 @@ def dashboard(request):
         Decimal("0.00"),
     )
 
-    # Review-only entries copied from the latest SIR APOLLO register in
-    # NAHA ASSETS 11234.xlsx. Do not treat these as confirmed tenancies.
-    spreadsheet_review_flags = [
-        {
-            "property": "Sir Apollo",
-            "unit_number": "23",
-            "listed_name": "MUHAMMAD",
-            "source": "NAHA ASSETS 11234.xlsx — SIR APOLLO, row 469",
-            "issue": "Please confirm whether this unit is currently occupied and whether this tenant record is still current.",
-        },
-        {
-            "property": "Sir Apollo",
-            "unit_number": "24",
-            "listed_name": "joush",
-            "source": "NAHA ASSETS 11234.xlsx — SIR APOLLO, row 470",
-            "issue": "Please confirm whether this unit is currently occupied and whether this tenant record is still current.",
-        },
-    ]
+    # Review flags are generated from the source notes stored on imported units.
+    # No uncertain source record is silently treated as a verified tenancy.
+    spreadsheet_review_flags = []
+    review_units = (
+        Unit.objects.filter(notes__contains="REVIEW:")
+        .select_related("property")
+        .prefetch_related("tenancies__tenant")
+        .order_by("property__name", "unit_number")
+    )
+    for unit in review_units:
+        tenancy = next(iter(unit.tenancies.all()), None)
+        source_notes, issue = unit.notes.split("REVIEW:", 1)
+        spreadsheet_review_flags.append({
+            "property": unit.property.name,
+            "unit_number": unit.unit_number,
+            "listed_name": tenancy.tenant.full_name if tenancy else "No tenant name recorded",
+            "source": source_notes.strip(),
+            "issue": issue.strip(),
+        })
 
     context = {
         "property_count": Property.objects.count(),
