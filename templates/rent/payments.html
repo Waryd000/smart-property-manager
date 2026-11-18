@@ -1,1 +1,40 @@
-{% extends "base.html" %}{% block content %}<h2>Bank payments</h2><p class="text-muted">Payments must be matched to genuine Equity Bank transaction records before verification.</p><table class="table table-striped"><thead><tr><th>Reference</th><th>Tenant</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>{% for p in payments %}<tr><td>{{ p.bank_reference }}</td><td>{{ p.tenant }}</td><td>UGX {{ p.amount|floatformat:0 }}</td><td>{{ p.get_status_display }}</td><td>{% if p.status == "PENDING" %}<form method="post" action="{% url 'verify-payment' p.pk %}">{% csrf_token %}<button class="btn btn-sm btn-success">Verify & allocate</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="5">No payments recorded.</td></tr>{% endfor %}</tbody></table>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Payments · Smart Property Manager{% endblock %}
+{% block content %}
+<div class="mb-4">
+  <div class="spm-eyebrow">Accounts</div>
+  <h1 class="spm-page-title">Bank payments</h1>
+  <p class="spm-subtitle">Review payment entries and their verification status.</p>
+</div>
+<div class="alert alert-info border-0 rounded-3 small mb-4"><i class="bi bi-shield-check me-2"></i>Only verify payments after matching them to genuine bank-originated transaction records. A tenant screenshot alone is not proof of receipt.</div>
+<section class="spm-card overflow-hidden">
+  <div class="p-3 p-lg-4 border-bottom"><h2 class="h5 fw-bold mb-1">Payment records</h2><p class="small text-secondary mb-0">Payment verification and allocation workflow</p></div>
+  <div class="table-responsive">
+    <table class="table spm-table mb-0">
+      <thead><tr><th>Bank reference</th><th>Tenant</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td class="fw-semibold">{{ p.bank_reference }}</td>
+          <td>{{ p.tenant }}</td>
+          <td class="fw-semibold">UGX {{ p.amount|floatformat:0 }}</td>
+          <td>
+            {% if p.status == "VERIFIED" %}<span class="badge rounded-pill text-bg-success-subtle text-success-emphasis">Verified</span>
+            {% elif p.status == "PENDING" %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Pending</span>
+            {% elif p.status == "REJECTED" %}<span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis">Rejected</span>
+            {% else %}<span class="badge rounded-pill text-bg-secondary-subtle text-secondary-emphasis">{{ p.get_status_display }}</span>{% endif %}
+          </td>
+          <td>
+            {% if p.status == "PENDING" %}
+            <form method="post" action="{% url 'verify-payment' p.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success"><i class="bi bi-check2-circle me-1"></i>Verify & allocate</button></form>
+            {% else %}<span class="text-secondary small">No action</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-secondary py-5"><i class="bi bi-wallet2 fs-3 d-block mb-2"></i>No payments recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
