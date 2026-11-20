@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -14,6 +15,13 @@ class Tenant(TimeStampedModel):
     identification_reference = models.CharField(max_length=100, blank=True)
     emergency_contact = models.CharField(max_length=160, blank=True)
     notes = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_tenants",
+    )
 
     def __str__(self):
         return self.full_name
@@ -40,10 +48,6 @@ class Tenancy(TimeStampedModel):
                 fields=["unit"],
                 condition=Q(status="ACTIVE"),
                 name="one_active_tenancy_per_unit",
-            ),
-            models.CheckConstraint(
-                condition=~Q(status="ACTIVE") | Q(start_date__isnull=False),
-                name="active_tenancy_requires_start_date",
             ),
         ]
 
