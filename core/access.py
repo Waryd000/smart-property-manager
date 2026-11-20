@@ -1,9 +1,14 @@
+from django.core.exceptions import ObjectDoesNotExist
+
 from properties.models import Property
 
 
-def _active_profile(user):
-    profile = getattr(user, "staff_profile", None)
-    return profile if profile and profile.is_active else None
+def staff_profile_for(user):
+    """Safely return a user's optional StaffProfile."""
+    try:
+        return user.staff_profile
+    except ObjectDoesNotExist:
+        return None
 
 
 def is_manager(user):
@@ -11,24 +16,24 @@ def is_manager(user):
     if not user.is_authenticated or not user.is_active:
         return False
 
-    profile = getattr(user, "staff_profile", None)
-    # A disabled staff profile must not retain access through is_staff.
+    profile = staff_profile_for(user)
+    # A disabled profile must not keep administrative access via is_staff.
     if profile is not None and not profile.is_active:
         return False
 
     return bool(
         user.is_superuser
         or user.is_staff
-        or (profile and profile.role == "MANAGER")
+        or (profile is not None and profile.role == "MANAGER")
     )
 
 
 def visible_properties(user):
-    """Properties an active account is allowed to view."""
+    """Return only properties this active account is allowed to access."""
     if not user.is_authenticated or not user.is_active:
         return Property.objects.none()
 
-    profile = getattr(user, "staff_profile", None)
+    profile = staff_profile_for(user)
     if profile is not None and not profile.is_active:
         return Property.objects.none()
 
