@@ -43,6 +43,12 @@ class Payment(TimeStampedModel):
     status = models.CharField(max_length=20, choices=STATUS, default="PENDING")
     verified_at = models.DateTimeField(null=True, blank=True)
     verified_by = models.ForeignKey("auth.User", null=True, blank=True, on_delete=models.PROTECT)
+    reversed_at = models.DateTimeField(null=True, blank=True)
+    reversed_by = models.ForeignKey(
+        "auth.User", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="reversed_payments",
+    )
+    reversal_reason = models.TextField(blank=True)
     source_note = models.CharField(max_length=255, blank=True)
 
     def clean(self):
@@ -81,6 +87,12 @@ class PaymentAllocation(TimeStampedModel):
     payment = models.ForeignKey(Payment, on_delete=models.PROTECT, related_name="allocations")
     rent_charge = models.ForeignKey(RentCharge, on_delete=models.PROTECT, related_name="allocations")
     allocated_amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0.01)])
+    reversed_at = models.DateTimeField(null=True, blank=True)
+    reversed_by = models.ForeignKey(
+        "auth.User", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="reversed_payment_allocations",
+    )
+    reversal_reason = models.TextField(blank=True)
 
     class Meta:
         constraints = [
