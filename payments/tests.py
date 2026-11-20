@@ -497,3 +497,79 @@ class PaymentRecordViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Payment.objects.count(), 0)
+
+
+class PaymentDateAndBankAmountTests(TestCase):
+    def setUp(self):
+        from payments.tests import PaymentVerificationTests
+
+        self.user = get_user_model().objects.create_user(
+            username="payment-date-manager",
+            password="test-password",
+            is_staff=True,
+        )
+        landlord = Landlord.objects.create(full_name="Date Match Landlord")
+        self.property = Property.objects.create(
+            landlord=landlord, name="Date Match Property", address="Kampala"
+        )
+        unit = Unit.objects.create(
+            property=self.property, unit_number="DATE-1",
+            monthly_rent=Decimal("80000"), status="OCCUPIED",
+        )
+        tenant = Tenant.objects.create(full_name="Date Match Tenant")
+        tenancy = Tenancy.objects.create(
+            tenant=tenant, unit=unit, start_date=date(2026, 1, 1),
+            monthly_rent=Decimal("80000"), status="ACTIVE",
+        )
+        self.charge = RentCharge.objects.create(
+            tenancy=tenancy, billing_month=date(2026, 1, 1),
+            amount=Decimal("80000"), due_date=date(2026, 1, 5),
+        )
+        self.payment = Payment.objects.create(
+            tenant=tenant, property=self.property, amount=Decimal("80000"),
+            bank_reference="EQ-DATE-MATCH-001", status="PENDING",
+            payment_date=timezone.now(),
+        )
+        self.bank_transaction = BankTransaction.objects.create(
+            bank_reference=self.payment.bank_reference,
+            transaction_date=timezone.now(),
+            amount=Decimal("80000"),
+        )
+
+    def test_payment_with_different_calendar_date_is_not_verified(self):
+        from datetime import timedelta
+        from payments.services import verify_and_allocate
+
+        self.payment.payment_date = timezone.now() - timedelta(days=2)
+        self.payment.save(update_fields=["payment_date"])
+
+        with self.assertRaisesMessage(ValueError, "payment date does not match"):
+            verify_and_allocate(self.payment, self.user)
+
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, "PENDING")
+        self.assertEqual(PaymentAllocation.objects.count(), 0)
+
+    def test_bank_transaction_must_have_positive_amount(self):
+        from django.db import IntegrityError, transaction
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                BankTransaction.objects.create(
+                    bank_reference="EQ-ZERO-AMOUNT",
+                    transaction_date=timezone.now(),
+                    amount=Decimal("0.00"),
+                )
+
+    def test_payment_with_matching_calendar_date_verifies(self):
+        from payments.services import verify_and_allocate
+
+        now = timezone.now()
+        self.payment.payment_date = now
+        self.payment.save(update_fields=["payment_date"])
+        self.bank_transaction.transaction_date = now
+        self.bank_transaction.save(update_fields=["transaction_date"])
+
+        verified = verify_and_allocate(self.payment, self.user)
+
+        self.assertEqual(verified.status, "VERIFIED")
