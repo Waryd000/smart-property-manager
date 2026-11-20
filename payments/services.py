@@ -47,6 +47,14 @@ def verify_and_allocate(payment, user):
             "The payment amount does not match the imported bank transaction."
         )
     if (
+        payment.payment_date
+        and timezone.localdate(payment.payment_date)
+        != timezone.localdate(bank_transaction.transaction_date)
+    ):
+        raise ValueError(
+            "The payment date does not match the imported bank transaction date."
+        )
+    if (
         bank_transaction.matched_payment_id is not None
         and bank_transaction.matched_payment_id != payment.pk
     ):
