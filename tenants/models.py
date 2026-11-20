@@ -41,6 +41,10 @@ class Tenancy(TimeStampedModel):
                 condition=Q(status="ACTIVE"),
                 name="one_active_tenancy_per_unit",
             ),
+            models.CheckConstraint(
+                condition=~Q(status="ACTIVE") | Q(start_date__isnull=False),
+                name="active_tenancy_requires_start_date",
+            ),
         ]
 
     def clean(self):
