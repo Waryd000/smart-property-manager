@@ -20,7 +20,7 @@
   </div>
   <div class="table-responsive">
     <table class="table spm-table mb-0">
-      <thead><tr><th>Tenant</th><th>Contact</th><th>Email</th><th>Property / unit</th><th>Monthly rent</th><th>Tenancy</th></tr></thead>
+      <thead><tr><th>Tenant</th><th>Contact</th><th>Email</th><th>Property / unit</th><th>Monthly rent</th><th>Tenancy</th><th>Agreement / action</th></tr></thead>
       <tbody>
         {% for t in tenants %}
           {% for tenancy in t.tenancies.all %}
@@ -35,6 +35,20 @@
               {% elif tenancy.status == "PENDING" %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Pending</span>
               {% else %}<span class="badge rounded-pill text-bg-secondary-subtle text-secondary-emphasis">{{ tenancy.get_status_display }}</span>{% endif %}
             </td>
+            <td>
+              {% if tenancy.agreement_file %}<a class="small d-block mb-1" href="{% url 'tenancy-agreement-download' tenancy.pk %}"><i class="bi bi-file-earmark-lock me-1"></i>Download agreement</a>{% endif %}
+              {% if can_manage and tenancy.status == "PENDING" %}
+                <form method="post" action="{% url 'tenancy-confirm' tenancy.pk %}" class="d-flex flex-wrap gap-1">
+                  {% csrf_token %}<input type="date" name="start_date" required class="form-control form-control-sm" aria-label="Confirmed start date">
+                  <button class="btn btn-sm btn-outline-success">Confirm</button>
+                </form>
+              {% elif can_manage and tenancy.status == "ACTIVE" %}
+                <form method="post" action="{% url 'tenancy-end' tenancy.pk %}" class="d-flex flex-wrap gap-1">
+                  {% csrf_token %}<input type="date" name="end_date" required class="form-control form-control-sm" aria-label="End date">
+                  <button class="btn btn-sm btn-outline-danger">End tenancy</button>
+                </form>
+              {% else %}<span class="small text-secondary">—</span>{% endif %}
+            </td>
           </tr>
           {% empty %}
           <tr>
@@ -44,10 +58,11 @@
             <td class="text-secondary">Not assigned yet</td>
             <td>—</td>
             <td><a class="btn btn-sm btn-outline-primary" href="tenancies/new/?tenant={{ t.pk }}">Create tenancy</a></td>
+            <td>—</td>
           </tr>
           {% endfor %}
         {% empty %}
-        <tr><td colspan="6" class="text-center text-secondary py-5"><i class="bi bi-people fs-3 d-block mb-2"></i>No tenants have been registered yet.</td></tr>
+        <tr><td colspan="7" class="text-center text-secondary py-5"><i class="bi bi-people fs-3 d-block mb-2"></i>No tenants have been registered yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
