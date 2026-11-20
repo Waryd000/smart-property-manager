@@ -104,6 +104,8 @@ class PaymentVerificationTests(TestCase):
         verified = verify_and_allocate(self.payment, self.user)
 
         self.assertEqual(verified.unallocated_amount, Decimal("20000.00"))
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.unallocated_amount, Decimal("20000.00"))
         self.assertEqual(self.charge.amount_paid, Decimal("100000.00"))
 
     def test_payment_only_allocates_to_its_selected_property(self):
@@ -142,6 +144,8 @@ class PaymentVerificationTests(TestCase):
         self.assertEqual(self.charge.amount_paid, Decimal("100000.00"))
         self.assertEqual(other_charge.amount_paid, Decimal("0.00"))
         self.assertEqual(verified.unallocated_amount, Decimal("20000.00"))
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.unallocated_amount, Decimal("20000.00"))
 
     def test_unassigned_payment_cannot_be_verified(self):
         self.payment.property = None
