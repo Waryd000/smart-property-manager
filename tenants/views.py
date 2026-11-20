@@ -1,5 +1,6 @@
 import os
 
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
@@ -173,9 +174,10 @@ def tenancy_confirm(request, pk):
     tenancy.status = "ACTIVE"
     tenancy.start_date = start_date
     try:
-        tenancy.full_clean()
-        tenancy.save(update_fields=["status", "start_date", "updated_at"])
-    except (IntegrityError, ValueError) as exc:
+        with transaction.atomic():
+            tenancy.full_clean()
+            tenancy.save(update_fields=["status", "start_date", "updated_at"])
+    except (IntegrityError, ValidationError) as exc:
         messages.error(request, f"Could not confirm this tenancy: {exc}")
         return redirect("tenant-list")
 
