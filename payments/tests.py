@@ -2,8 +2,10 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
+from django.urls import reverse
 
 from payments.models import BankTransaction, Payment, PaymentAllocation
 from payments.services import import_equity_statement_row, verify_and_allocate
@@ -220,3 +222,104 @@ class PaymentVerificationTests(TestCase):
                 "transaction_date": timezone.now().isoformat(),
                 "amount": "-10000.00",
             })
+
+
+class BankStatementImportViewTests(TestCase):
+    def setUp(self):
+        self.manager = get_user_model().objects.create_user(
+            username="statement-manager",
+            password="test-password",
+            is_staff=True,
+        )
+        self.url = reverse("bank-statement-import")
+
+    def upload(self, content, filename="equity-incoming.csv"):
+        return SimpleUploadedFile(
+            filename,
+            content.encode("utf-8"),
+            content_type="text/csv",
+        )
+
+    def test_manager_can_import_normalized_incoming_csv(self):
+        self.client.force_login(self.manager)
+        response = self.client.post(
+            self.url,
+            {
+                "statement_file": self.upload(
+                    "reference,transaction_date,amount,narrative\\n"
+                    "EQ-UP-001,2026-11-20T10:15:00+03:00,250000,Incoming rent"
+                ),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(BankTransaction.objects.count(), 1)
+        tx = BankTransaction.objects.get(bank_reference="EQ-UP-001")
+        self.assertEqual(tx.amount, Decimal("250000"))
+        self.assertEqual(tx.reconciliation_status, "UNMATCHED")
+
+    def test_identical_statement_upload_is_idempotent(self):
+        self.client.force_login(self.manager)
+        content = (
+            "reference,transaction_date,amount,narrative\\n"
+            "EQ-UP-002,2026-11-20T10:15:00+03:00,175000,Incoming rent"
+        )
+        self.client.post(self.url, {"statement_file": self.upload(content)})
+        response = self.client.post(self.url, {"statement_file": self.upload(content)})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            BankTransaction.objects.filter(bank_reference="EQ-UP-002").count(),
+            1,
+        )
+
+    def test_invalid_row_rolls_back_entire_statement(self):
+        self.client.force_login(self.manager)
+        content = (
+            "reference,transaction_date,amount,narrative\\n"
+            "EQ-GOOD-003,2026-11-20T10:15:00+03:00,125000,Good credit\\n"
+            "EQ-DEBIT-003,2026-11-20T10:16:00+03:00,-5000,Debit"
+        )
+        response = self.client.post(
+            self.url,
+            {"statement_file": self.upload(content)},
+            follow=True,
+        )
+
+        self.assertEqual(BankTransaction.objects.count(), 0)
+        self.assertContains(response, "positive incoming")
+
+    def test_missing_csv_headers_are_rejected(self):
+        self.client.force_login(self.manager)
+        response = self.client.post(
+            self.url,
+            {
+                "statement_file": self.upload(
+                    "reference,amount\\nEQ-MISSING-DATE,50000"
+                ),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(BankTransaction.objects.count(), 0)
+        self.assertContains(response, "Missing required CSV columns")
+
+    def test_only_managers_can_import_bank_statements(self):
+        staff = get_user_model().objects.create_user(
+            username="ordinary-user",
+            password="test-password",
+            is_staff=False,
+        )
+        self.client.force_login(staff)
+        response = self.client.post(
+            self.url,
+            {
+                "statement_file": self.upload(
+                    "reference,transaction_date,amount\\n"
+                    "EQ-NO-ACCESS,2026-11-20T10:15:00+03:00,50000"
+                ),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(BankTransaction.objects.count(), 0)
