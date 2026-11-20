@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.shortcuts import render, redirect
 
 from core.access import visible_properties
@@ -19,7 +19,10 @@ def tenant_list(request):
         .order_by("unit__property__name", "unit__unit_number")
     )
     tenants = (
-        Tenant.objects.filter(tenancies__unit__property__in=allowed)
+        Tenant.objects.filter(
+            Q(tenancies__unit__property__in=allowed)
+            | Q(created_by=request.user, tenancies__isnull=True)
+        )
         .distinct()
         .prefetch_related(Prefetch("tenancies", queryset=visible_tenancies))
     )
@@ -34,7 +37,9 @@ def tenant_create(request):
 
     form = TenantForm(request.POST or None)
     if form.is_valid():
-        form.save()
+        tenant = form.save(commit=False)
+        tenant.created_by = request.user
+        tenant.save()
         messages.success(request, "Tenant record created.")
         return redirect("tenant-list")
     return render(request, "properties/form.html", {"form": form, "title": "Add tenant"})
@@ -42,10 +47,17 @@ def tenant_create(request):
 
 @login_required
 def tenancy_create(request):
-    form = TenancyForm(request.POST or None, request.FILES or None)
-    form.fields["unit"].queryset = Unit.objects.filter(
-        property__in=visible_properties(request.user)
+    allowed = visible_properties(request.user)
+    form = TenancyForm(
+        request.POST or None,
+        request.FILES or None,
+        initial={"tenant": request.GET.get("tenant")} if request.GET.get("tenant") else None,
     )
+    form.fields["unit"].queryset = Unit.objects.filter(property__in=allowed)
+    form.fields["tenant"].queryset = Tenant.objects.filter(
+        Q(tenancies__unit__property__in=allowed)
+        | Q(created_by=request.user, tenancies__isnull=True)
+    ).distinct()
 
     if form.is_valid():
         try:
