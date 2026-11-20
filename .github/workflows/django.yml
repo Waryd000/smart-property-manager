@@ -28,8 +28,12 @@ jobs:
           --health-retries 5
     env:
       DEBUG: "False"
-      SECRET_KEY: ci-only-not-for-deployment
-      ALLOWED_HOSTS: localhost,127.0.0.1
+      SECRET_KEY: "ci-only-not-for-deployment"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+      CSRF_TRUSTED_ORIGINS: "http://localhost,http://127.0.0.1"
+      SECURE_SSL_REDIRECT: "False"
+      SESSION_COOKIE_SECURE: "False"
+      CSRF_COOKIE_SECURE: "False"
       DB_NAME: smart_property_manager
       DB_USER: spm_user
       DB_PASSWORD: ci-password-only
