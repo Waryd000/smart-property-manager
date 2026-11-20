@@ -7,8 +7,9 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.access import is_manager, visible_properties
-from .forms import BankStatementImportForm
+from .forms import BankStatementImportForm, PaymentRecordForm
 from .models import Payment
+from operations.models import AuditLog
 from .services import import_equity_statement_row, verify_and_allocate
 
 
@@ -99,6 +100,45 @@ def bank_statement_import(request):
             messages.error(request, str(exc) or "The CSV file could not be parsed.")
 
     return render(request, "payments/bank_import.html", {"form": form})
+
+
+@login_required
+def payment_create(request):
+    if not is_manager(request.user):
+        messages.error(request, "Only an active manager can record pending payments.")
+        return redirect("payment-list")
+
+    form = PaymentRecordForm(request.POST or None, user=request.user)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            payment = form.save(commit=False)
+            payment.status = "PENDING"
+            payment.method = "BANK_TRANSFER"
+            payment.save()
+            AuditLog.objects.create(
+                user=request.user,
+                action="PAYMENT_RECORDED_PENDING",
+                model_name="Payment",
+                record_id=str(payment.pk),
+                details={
+                    "bank_reference": payment.bank_reference,
+                    "amount": str(payment.amount),
+                    "property_id": payment.property_id,
+                    "tenant_id": payment.tenant_id,
+                },
+                ip_address=request.META.get("REMOTE_ADDR") or None,
+            )
+        messages.success(
+            request,
+            "Pending payment recorded. It must match an imported bank transaction before verification.",
+        )
+        return redirect("payment-list")
+
+    return render(
+        request,
+        "payments/payment_form.html",
+        {"form": form},
+    )
 
 
 @login_required
