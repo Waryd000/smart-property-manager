@@ -13,7 +13,7 @@ This tracker records verified repository work separately from local-user actions
 | Plan | In progress | Repository and module audit started; risks and deployment gaps documented below. |
 | Design | In progress | Responsive frontend is merged to `main`; financial and access-control designs need completion. |
 | Develop | In progress | Dashboard property scoping and bank-transaction verification safeguards are implemented on the current branch. |
-| Test | Pending execution | Regression tests and PostgreSQL GitHub Actions workflow added; must obtain a green workflow run. Local runner currently has no Django packages and no package-index network access. |
+| Test | In progress | Regression tests added. PostgreSQL GitHub Actions job now generates the current model migrations in its disposable runner, applies them, runs the test suite and uploads the generated migration files; waiting for the new run result. Local runner cannot install Django because package-index network access is unavailable. |
 | Debug | In progress | Previously exposed dashboard data and unverified payment approval paths are addressed in code; further failures depend on test results. |
 | Improve | In progress | Import workflow, maintenance/expense modules, reporting and audit coverage remain. |
 | Deploy | Blocked | No VPS host, SSH/deployment credentials, domain, TLS details, or production database/backup configuration have been supplied. Do not deploy without these. |
@@ -34,7 +34,7 @@ This tracker records verified repository work separately from local-user actions
 | Management fees and landlord statements | Minimal ManagementFee model exists; invoicing, receipts, balances, remittance and statements are not implemented. | Not complete |
 | Audit and reporting | AuditLog model exists, but important changes are not yet consistently written to it; reports/export screens remain. | Not complete |
 | Notifications | No complete SMS/email provider, consent, delivery log, retries or templates. | Not complete |
-| Migrations and schema lifecycle | No migration files were present in the audited Git tree. CI currently uses `migrate --run-syncdb` for the unmigrated development apps. Generate, commit and test initial migrations before production. | Blocker |
+| Migrations and schema lifecycle | No migration files were present in the audited `main` Git tree. CI now generates initial migrations in its ephemeral runner, applies them and uploads them as a review artifact. Those migration files must be reviewed and committed into the repository before production or any fresh environment setup. | Blocker |
 | Automated testing | Existing tests were very limited; dashboard isolation and payment reconciliation tests added on current branch. A PostgreSQL CI workflow was added but has not yet reported a green run. | In progress |
 | Production security | Current settings need production-only security headers/cookies, strict CSRF origins, HTTPS proxy configuration, secrets policy, file upload validation, backup/restore and security testing. | Not complete |
 | Cloud VPS deployment | No deployment scripts, web server/systemd configuration, domain or VPS access details available. | Blocked |
