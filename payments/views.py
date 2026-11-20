@@ -10,7 +10,11 @@ from core.access import is_manager, visible_properties
 from .forms import BankStatementImportForm, PaymentRecordForm
 from .models import Payment
 from operations.models import AuditLog
-from .services import import_equity_statement_row, verify_and_allocate
+from .services import (
+    import_equity_statement_row,
+    reverse_verified_payment,
+    verify_and_allocate,
+)
 
 
 
@@ -190,6 +194,31 @@ def verify_payment(request, pk):
             )
         else:
             messages.success(request, "Payment matched, verified and allocated.")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+    return redirect("payment-list")
+
+
+@login_required
+def reverse_payment_view(request, pk):
+    if request.method != "POST":
+        return redirect("payment-list")
+    if not is_manager(request.user):
+        messages.error(request, "Only an active manager can reverse payments.")
+        return redirect("payment-list")
+
+    payment = get_object_or_404(
+        Payment.objects.select_related("property"),
+        pk=pk,
+        property__in=visible_properties(request.user),
+    )
+    reason = request.POST.get("reason", "").strip()
+    try:
+        reverse_verified_payment(payment, request.user, reason)
+        messages.success(
+            request,
+            "Payment reversed. Its allocations were removed from rent balances and the original bank match was retained for audit.",
+        )
     except ValueError as exc:
         messages.error(request, str(exc))
     return redirect("payment-list")
