@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from payments.models import BankTransaction, Payment, PaymentAllocation
-from payments.services import verify_and_allocate
+from payments.services import import_equity_statement_row, verify_and_allocate
 from properties.models import Landlord, Property, Unit
 from rent.models import RentCharge
 from tenants.models import Tenant, Tenancy
@@ -160,3 +160,59 @@ class PaymentVerificationTests(TestCase):
         verify_and_allocate(self.payment, self.user)
 
         self.assertEqual(PaymentAllocation.objects.count(), 1)
+
+
+    def test_payment_tenant_must_have_a_tenancy_in_selected_property(self):
+        other_property = Property.objects.create(
+            landlord=self.property.landlord,
+            name="Unrelated property",
+            address="Kampala",
+        )
+        self.payment.property = other_property
+        self.payment.save(update_fields=["property"])
+        self.add_bank_transaction()
+
+        with self.assertRaisesMessage(ValueError, "no tenancy in this property"):
+            verify_and_allocate(self.payment, self.user)
+
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, "PENDING")
+        self.assertEqual(PaymentAllocation.objects.count(), 0)
+
+    def test_bank_statement_import_is_idempotent_for_identical_row(self):
+        row = {
+            "reference": "EQ-STATEMENT-001",
+            "transaction_date": timezone.now().isoformat(),
+            "amount": "150000.00",
+            "narrative": "Incoming tenant payment",
+        }
+
+        first, first_created = import_equity_statement_row(row)
+        second, second_created = import_equity_statement_row(row)
+
+        self.assertTrue(first_created)
+        self.assertFalse(second_created)
+        self.assertEqual(first.pk, second.pk)
+
+    def test_bank_statement_import_rejects_conflicting_duplicate_reference(self):
+        transaction_date = timezone.now().isoformat()
+        import_equity_statement_row({
+            "reference": "EQ-STATEMENT-CONFLICT",
+            "transaction_date": transaction_date,
+            "amount": "150000.00",
+        })
+
+        with self.assertRaisesMessage(ValueError, "different amount or date"):
+            import_equity_statement_row({
+                "reference": "EQ-STATEMENT-CONFLICT",
+                "transaction_date": transaction_date,
+                "amount": "175000.00",
+            })
+
+    def test_bank_statement_import_rejects_debit_or_zero_amount(self):
+        with self.assertRaisesMessage(ValueError, "positive incoming"):
+            import_equity_statement_row({
+                "reference": "EQ-DEBIT-001",
+                "transaction_date": timezone.now().isoformat(),
+                "amount": "-10000.00",
+            })
