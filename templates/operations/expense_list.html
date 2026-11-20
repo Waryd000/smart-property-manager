@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Expenses · Smart Property Manager{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+  <div><div class="spm-eyebrow">Property accounts</div><h1 class="spm-page-title">Expenses</h1><p class="spm-subtitle">Submit costs and follow approval and payment status.</p></div>
+  <a href="{% url 'expense-create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Submit expense</a>
+</div>
+<section class="spm-card overflow-hidden">
+  <div class="p-3 p-lg-4 border-bottom"><h2 class="h5 fw-bold mb-0">Expense register</h2></div>
+  <div class="table-responsive"><table class="table spm-table mb-0">
+    <thead><tr><th>Property</th><th>Expense</th><th>Incurred</th><th>Amount</th><th>Status</th><th>Approval / payment</th></tr></thead>
+    <tbody>{% for item in expenses %}
+      <tr>
+        <td class="fw-semibold">{{ item.property.name }}</td><td>{{ item.category }}<div class="small text-secondary">{{ item.description }}</div></td>
+        <td>{{ item.incurred_on|date:"d M Y" }}</td><td class="fw-semibold">UGX {{ item.amount|floatformat:0 }}</td>
+        <td>{% if item.status == "PAID" %}<span class="badge rounded-pill text-bg-success-subtle text-success-emphasis">Paid</span>{% elif item.status == "APPROVED" %}<span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">Approved</span>{% elif item.status == "REJECTED" %}<span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis">Rejected</span>{% else %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Pending approval</span>{% endif %}</td>
+        <td>
+          {% if item.status == "PAID" %}<div class="small">Ref: {{ item.payment_reference }}</div><div class="small text-secondary">By {{ item.paid_by|default:"—" }} · {{ item.paid_at|date:"d M Y" }}</div>
+          {% elif can_manage and item.status == "PENDING" %}
+            <div class="d-flex flex-wrap gap-1"><form method="post" action="{% url 'expense-transition' item.pk %}">{% csrf_token %}<input type="hidden" name="status" value="APPROVED"><button class="btn btn-sm btn-outline-success">Approve</button></form>
+            <form method="post" action="{% url 'expense-transition' item.pk %}">{% csrf_token %}<input type="hidden" name="status" value="REJECTED"><button class="btn btn-sm btn-outline-danger">Reject</button></form></div>
+          {% elif can_manage and item.status == "APPROVED" %}
+            <form method="post" action="{% url 'expense-transition' item.pk %}" class="d-flex flex-wrap gap-1">{% csrf_token %}<input type="hidden" name="status" value="PAID"><input name="payment_reference" class="form-control form-control-sm" placeholder="Payment / voucher ref" required><button class="btn btn-sm btn-success">Mark paid</button></form>
+          {% else %}<span class="small text-secondary">Awaiting manager action</span>{% endif %}
+        </td>
+      </tr>
+    {% empty %}<tr><td colspan="6" class="text-center text-secondary py-5"><i class="bi bi-receipt fs-3 d-block mb-2"></i>No expenses recorded.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

@@ -1,6 +1,8 @@
 ﻿.env
 .env.*
 !.env.example
+!.env.production.example
+.env.production
 .venv/
 venv/
 __pycache__/
@@ -14,3 +16,7 @@ staticfiles/
 .vscode/
 .idea/
 *.log
+
+# Encrypted backups and host-specific backup configuration
+deploy/backup.age-recipient
+backups/

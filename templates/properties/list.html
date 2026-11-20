@@ -9,7 +9,7 @@
   </div>
   <div class="d-flex gap-2">
     {% if can_manage %}<a class="btn btn-outline-primary" href="new/"><i class="bi bi-building-add me-2"></i>Add property</a>{% endif %}
-    <a class="btn btn-primary" href="units/new/"><i class="bi bi-plus-lg me-2"></i>Add unit</a>
+    {% if can_manage %}<a class="btn btn-primary" href="units/new/"><i class="bi bi-plus-lg me-2"></i>Add unit</a>{% endif %}
   </div>
 </div>
 

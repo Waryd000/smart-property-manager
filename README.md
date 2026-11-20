@@ -1,69 +1,100 @@
 # Smart Property Manager (SPM)
 
-Django/PostgreSQL foundation for managing one landlord's portfolio of up to 10 properties and 10–30 units. Currency: UGX. Bank workflow: Equity Bank Uganda statement import/reconciliation initially; direct API integration is a later bank-approved phase.
+Django/PostgreSQL property-management system for a single landlord portfolio. Currency: UGX. Time zone: Africa/Kampala. The repository is being hardened through the Loop Engineering cycle and is **not yet approved for production financial operations**.
 
-## Included in this foundation
-- Manager/staff profile model and Django authentication.
-- One landlord linked to multiple properties; units and staff-property assignments.
-- Tenant and tenancy records, with rent amount, deposit, due day and agreement upload.
-- Monthly rent charge model with partial-payment allocations and status calculation.
-- Payment records, bank transaction records and manager verification/oldest-charge allocation service.
-- Management fee, utility bill, maintenance request, expense and audit-log models.
-- Responsive starter pages for dashboard, properties, tenants, rent register and payment verification.
-- Management command to generate monthly rent charges.
+## Current modules
+
+- Manager/staff accounts with property assignments.
+- Landlords, properties and rental units.
+- Tenant profiles and tenancy records, including pending verification and database protections against duplicate active tenancies.
+- Dashboard, property, tenant, rent and payment registers.
+- Monthly rent charge generation and partial allocations.
+- Payment-to-bank-statement reconciliation with property-scoped rent allocation.
+- Maintenance, expenses, utilities, management-fee and audit data models; several still need full staff-facing workflows.
+- PostgreSQL migrations and GitHub Actions CI.
 
 ## 1. Requirements
+
 - Python 3.11 or newer
 - PostgreSQL 14 or newer
-- Redis (for scheduled jobs in the next implementation stage)
+- Redis is needed when scheduled Celery tasks are enabled.
 
 ## 2. Local setup (Windows PowerShell)
+
 ```powershell
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
-Edit `.env` with a strong secret key and your PostgreSQL credentials. Create the database and user in PostgreSQL, then:
+
+Edit `.env` with a new strong secret key and your PostgreSQL credentials. Create the PostgreSQL database and user, then run:
+
 ```powershell
-python manage.py makemigrations accounts properties tenants rent payments operations
 python manage.py migrate
+python manage.py check
 python manage.py createsuperuser
 python manage.py runserver
 ```
-Open http://127.0.0.1:8000/ and sign in. Create the landlord first in `/admin/`, then add properties, units, tenants and tenancies.
+
+Open http://127.0.0.1:8000/. Create the landlord in `/admin/`, then add properties, units, tenants and confirmed tenancies. Use the committed migrations; do not create schema manually on the VPS.
 
 ## 3. Generate monthly rent charges
+
 ```powershell
 python manage.py generate_rent
 ```
-The command creates charges for active tenancies for the current month and is safe to rerun because each tenancy/month pair is unique.
 
-## 4. Payment verification
-Create a pending Payment record only after a bank transaction is found or imported. A manager can verify it in the Payments screen. The service allocates the verified amount to the tenant's oldest outstanding rent charges. Any excess remains unallocated and must be handled as tenant credit/refund through a controlled workflow before production.
+The command generates charges for active tenancies within the requested billing month. It is intended to be safe to rerun because each tenancy/month pair is unique. Review the ledger and run the CI tests before relying on it for financial posting.
 
-**Important:** the included verify button is a prototype manager action, not a substitute for a bank API or bank statement match. Restrict access to trusted managers and only verify after checking the original bank record.
+## 4. Payment reconciliation
 
-## 5. Equity Bank integration
-The bank CSV format must be obtained from Equity Bank and mapped to the normalized fields used by `payments.services.import_equity_statement_row`: `reference`, `transaction_date` (ISO format), `amount`, `narrative`. Do not assume a generic CSV is an official bank confirmation. Direct API/webhook integration requires written bank approval, credentials, callback verification, idempotency and security review.
+A payment can only be verified after an imported bank transaction matches the payment's bank reference and amount, and the tenant has a tenancy in the selected property. The service locks the payment and bank transaction, prevents a bank row from being matched twice, and allocates funds to that tenant's oldest outstanding rent charges within the selected property.
 
-## 6. Production deployment checklist
-- Use a supported Ubuntu LTS VPS, PostgreSQL and Redis on private network interfaces.
-- Set `DEBUG=False`, a unique long `SECRET_KEY`, strict `ALLOWED_HOSTS`, HTTPS and `CSRF_TRUSTED_ORIGINS`.
-- Use Nginx + Gunicorn; run Celery workers and Celery Beat as supervised services.
-- Store secrets outside source control; never commit `.env` or bank credentials.
-- Configure encrypted off-site backups and test restoration.
-- Enable 2FA, least-privilege property assignments, audit logging and staff offboarding.
-- Add SMS provider integration only after sender ID, consent, delivery and cost testing.
-- Complete financial, privacy, security and user acceptance testing before real collections.
+Any verified excess is stored in `Payment.unallocated_amount`; it is **not** silently assigned to another property or rent charge. The live credit/refund and reversal workflow is not yet complete, so excess amounts must remain under manager review and must not be treated as available landlord funds.
 
-## 7. Known next engineering tasks
-1. Add database-level protection against overlapping active tenancies for a unit.
-2. Extend property-level filtering to every new staff-facing endpoint and add automated permission tests.
-3. Implement notification templates, SMS provider adapter, deduplication and delivery logs.
-4. Implement bank CSV upload UI, statement parser, transaction matching and immutable reconciliation audit.
-5. Add double-entry accounting journal and controlled landlord remittance workflow.
-6. Add approval thresholds, management fee invoicing/payment tracking and landlord statements.
-7. Add tests for allocation, duplicate bank references, partial payments, month boundaries, permissions and reversals.
+The verification screen is not a substitute for the bank's official statement. Do not verify against a tenant screenshot or an unconfirmed transaction.
 
-This is a development starter, not a production-ready financial platform. Review and harden it before processing real money or personal data.
+## 5. Equity Bank statement ingestion
+
+`payments.services.import_equity_statement_row` accepts a normalized incoming-credit row with:
+
+- `reference`: bank transaction reference
+- `transaction_date`: ISO-8601 timestamp
+- `amount`: positive decimal credit amount
+- `narrative`: optional description
+
+The function is idempotent for an identical reference, date and amount, and raises a conflict error if the same reference is later supplied with a different date or amount. The actual Equity Bank export format still needs to be obtained and mapped, and the user-facing statement upload/review UI is not complete. Never assume an arbitrary CSV is an official bank confirmation. API/webhook access needs written bank approval and a separate security review.
+
+## 6. Importing the initial NAHA tenant register
+
+The existing management command accepts a validated JSON file and supports `--dry-run`. The source workbook's latest tenant registers must be converted and reviewed before import. Current import hardening and source-row identity tests are still in progress.
+
+First release import scope:
+- Properties: Bukesa, Sir Apollo and Kisenyi.
+- Import tenant names/records first; monthly rent values are to be reviewed and updated by the manager.
+- Do not import historical payment columns as verified payments.
+- Do not import water or utility sheets in the first pass.
+- Sir Apollo units 23 (MUHAMMAD) and 24 (joush) remain Pending Verification until occupancy is confirmed.
+
+Keep the private source workbook and tenant data out of Git.
+
+## 7. Production security and deployment
+
+Production settings require a unique `SECRET_KEY`, strict `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`. HTTPS redirects and secure session/CSRF cookies default on when `DEBUG=False`. Enable HSTS only after TLS and reverse-proxy behavior are verified.
+
+Before go-live:
+- Use supported Ubuntu LTS, Nginx + Gunicorn, PostgreSQL on a private network, and Redis/Celery only where needed.
+- Store secrets outside Git; rotate any development secret exposed during setup.
+- Add file type/size validation, 2FA policy, throttling, complete authorization coverage and immutable audit events.
+- Configure encrypted off-site backups and prove restoration.
+- Complete import reconciliation, finance acceptance, privacy and security testing.
+- Complete user acceptance before processing real money or personal data.
+
+Cloud VPS deployment is pending an authorized target and access path (provider/host/IP, Ubuntu version, deployment user/SSH method, domain/TLS and backup/restore approach). Never put passwords or SSH private keys in chat or Git.
+
+## 8. Engineering tracker
+
+Follow `PROJECT_COMPLETION_TRACKER.md` for the current module status, verified test evidence, remaining production blockers and deployment prerequisites.
+
+This is an actively developed system and must not be represented as production-ready until the tracker’s release criteria have been satisfied.

@@ -26,7 +26,8 @@
           <td>{{ c.due_date|date:"d M Y" }}</td>
           <td>
             {% if c.status == "PAID" %}<span class="badge rounded-pill text-bg-success-subtle text-success-emphasis">Paid</span>
-            {% elif c.status == "OVERDUE" %}<span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis">Overdue</span>
+            {% elif c.status == "OVERDUE" or c.due_date < today and c.balance_amount > 0 and c.amount_paid_total == 0 %}<span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis">Overdue</span>
+            {% elif c.status == "PARTIAL" and c.due_date < today and c.balance_amount > 0 %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Partially paid · overdue</span>
             {% elif c.status == "PARTIAL" %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Partial</span>
             {% else %}<span class="badge rounded-pill text-bg-light border text-secondary">{{ c.get_status_display }}</span>{% endif %}
           </td>

@@ -6,32 +6,47 @@
   <h1 class="spm-page-title">Bank payments</h1>
   <p class="spm-subtitle">Review payment entries and their verification status.</p>
 </div>
+{% if can_manage %}
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a href="{% url 'payment-create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Record pending payment</a>
+  <a href="{% url 'bank-statement-import' %}" class="btn btn-outline-primary"><i class="bi bi-cloud-arrow-up me-2"></i>Import bank statement</a>
+</div>
+{% endif %}
 <div class="alert alert-info border-0 rounded-3 small mb-4"><i class="bi bi-shield-check me-2"></i>Only verify payments after matching them to genuine bank-originated transaction records. A tenant screenshot alone is not proof of receipt.</div>
 <section class="spm-card overflow-hidden">
   <div class="p-3 p-lg-4 border-bottom"><h2 class="h5 fw-bold mb-1">Payment records</h2><p class="small text-secondary mb-0">Payment verification and allocation workflow</p></div>
   <div class="table-responsive">
     <table class="table spm-table mb-0">
-      <thead><tr><th>Bank reference</th><th>Tenant</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+      <thead><tr><th>Bank reference</th><th>Tenant</th><th>Property</th><th>Amount</th><th>Unallocated</th><th>Status</th><th>Action</th></tr></thead>
       <tbody>
         {% for p in payments %}
         <tr>
           <td class="fw-semibold">{{ p.bank_reference }}</td>
           <td>{{ p.tenant }}</td>
+          <td>{% if p.property %}{{ p.property.name }}{% else %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Property not assigned</span>{% endif %}</td>
           <td class="fw-semibold">UGX {{ p.amount|floatformat:0 }}</td>
+          <td>{% if p.unallocated_amount > 0 %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">UGX {{ p.unallocated_amount|floatformat:0 }}</span>{% else %}<span class="text-secondary">—</span>{% endif %}</td>
           <td>
             {% if p.status == "VERIFIED" %}<span class="badge rounded-pill text-bg-success-subtle text-success-emphasis">Verified</span>
             {% elif p.status == "PENDING" %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Pending</span>
             {% elif p.status == "REJECTED" %}<span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis">Rejected</span>
+            {% elif p.status == "REVERSED" %}<span class="badge rounded-pill text-bg-dark">Reversed</span>
             {% else %}<span class="badge rounded-pill text-bg-secondary-subtle text-secondary-emphasis">{{ p.get_status_display }}</span>{% endif %}
           </td>
           <td>
-            {% if p.status == "PENDING" %}
+            {% if p.status == "PENDING" and p.property %}
             <form method="post" action="{% url 'verify-payment' p.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success"><i class="bi bi-check2-circle me-1"></i>Verify & allocate</button></form>
+            {% elif p.status == "PENDING" %}<span class="text-secondary small">Assign property first</span>
+            {% elif can_manage and p.status == "VERIFIED" %}
+              <form method="post" action="{% url 'reverse-payment' p.pk %}" class="d-flex flex-wrap gap-1">{% csrf_token %}
+                <input type="text" name="reason" class="form-control form-control-sm" placeholder="Reason for reversal" required maxlength="1000">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Reverse</button>
+              </form>
             {% else %}<span class="text-secondary small">No action</span>{% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-center text-secondary py-5"><i class="bi bi-wallet2 fs-3 d-block mb-2"></i>No payments recorded yet.</td></tr>
+        <tr><td colspan="7" class="text-center text-secondary py-5"><i class="bi bi-wallet2 fs-3 d-block mb-2"></i>No payments recorded yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
