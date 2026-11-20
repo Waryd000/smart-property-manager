@@ -5,6 +5,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from .models import BankTransaction, Payment, PaymentAllocation
+from operations.models import AuditLog
 from rent.models import RentCharge
 from tenants.models import Tenancy
 
@@ -95,6 +96,21 @@ def verify_and_allocate(payment, user):
     bank_transaction.reconciliation_status = "MATCHED"
     bank_transaction.save(
         update_fields=["matched_payment", "reconciliation_status", "updated_at"]
+    )
+    AuditLog.objects.create(
+        user=user,
+        action="PAYMENT_VERIFIED",
+        model_name="Payment",
+        record_id=str(payment.pk),
+        details={
+            "bank_reference": payment.bank_reference,
+            "amount": str(payment.amount),
+            "property_id": payment.property_id,
+            "tenant_id": payment.tenant_id,
+            "bank_transaction_id": bank_transaction.pk,
+            "allocated_amount": str(payment.amount - remaining),
+            "unallocated_amount": str(remaining),
+        },
     )
     return payment
 
