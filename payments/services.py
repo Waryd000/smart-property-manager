@@ -1,19 +1,17 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+from datetime import datetime
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from .models import BankTransaction, Payment, PaymentAllocation
 from rent.models import RentCharge
+from tenants.models import Tenancy
 
 
 @transaction.atomic
 def verify_and_allocate(payment, user):
-    """Verify a payment only after an exact bank and property match.
-
-    Rent is allocated only to the named tenant's oldest outstanding charges
-    within the property's scope. Any remainder is persisted as unallocated.
-    """
+    """Verify an exact bank match and allocate only within the payment property."""
     payment = Payment.objects.select_for_update().select_related("property").get(pk=payment.pk)
 
     if payment.status == "VERIFIED":
@@ -25,6 +23,13 @@ def verify_and_allocate(payment, user):
             "Assign this payment to a property before verification. "
             "Unassigned payments must be reviewed by a manager."
         )
+
+    has_tenancy = Tenancy.objects.filter(
+        tenant=payment.tenant,
+        unit__property_id=payment.property_id,
+    ).exists()
+    if not has_tenancy:
+        raise ValueError("The payment tenant has no tenancy in this property.")
 
     bank_transaction = (
         BankTransaction.objects.select_for_update()
@@ -94,20 +99,57 @@ def verify_and_allocate(payment, user):
     return payment
 
 
+@transaction.atomic
 def import_equity_statement_row(row):
-    """Create an unmatched bank transaction from a normalized CSV row.
+    """Import one normalized incoming Equity Bank statement row.
 
-    Expected keys: reference, transaction_date (ISO format), amount, narrative.
-    Map the Equity Bank's actual CSV headers before using this function.
+    Required keys: reference, transaction_date (ISO-8601), amount.
+    Optional key: narrative. Only positive incoming credits are accepted.
+    Identical duplicate references are idempotent; conflicting duplicates fail.
     """
-    from datetime import datetime
+    reference = str(row.get("reference", "")).strip()
+    if not reference:
+        raise ValueError("A bank transaction reference is required.")
 
-    tx_date = datetime.fromisoformat(row["transaction_date"])
-    return BankTransaction.objects.get_or_create(
-        bank_reference=row["reference"],
-        defaults={
-            "transaction_date": tx_date,
-            "amount": Decimal(row["amount"]),
-            "narrative": row.get("narrative", ""),
-        },
-    )
+    try:
+        tx_date = datetime.fromisoformat(str(row["transaction_date"]).strip().replace("Z", "+00:00"))
+        amount = Decimal(str(row["amount"]).strip())
+    except (KeyError, ValueError, TypeError, InvalidOperation) as exc:
+        raise ValueError(
+            "Each statement row needs a valid ISO transaction date and decimal amount."
+        ) from exc
+
+    if not amount.is_finite() or amount <= 0:
+        raise ValueError("Only positive incoming transaction amounts can be imported.")
+
+    if timezone.is_naive(tx_date):
+        tx_date = timezone.make_aware(tx_date, timezone.get_current_timezone())
+
+    existing = BankTransaction.objects.select_for_update().filter(
+        bank_reference=reference
+    ).first()
+    if existing:
+        same_date = existing.transaction_date == tx_date
+        if existing.amount != amount or not same_date:
+            raise ValueError(
+                "This bank reference already exists with a different amount or date."
+            )
+        return existing, False
+
+    try:
+        with transaction.atomic():
+            created = BankTransaction.objects.create(
+                bank_reference=reference,
+                transaction_date=tx_date,
+                amount=amount,
+                narrative=str(row.get("narrative", "")).strip()[:255],
+            )
+        return created, True
+    except IntegrityError:
+        # A second importer may have inserted this reference concurrently.
+        existing = BankTransaction.objects.get(bank_reference=reference)
+        if existing.amount != amount or existing.transaction_date != tx_date:
+            raise ValueError(
+                "This bank reference already exists with a different amount or date."
+            )
+        return existing, False
