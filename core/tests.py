@@ -80,6 +80,7 @@ class DashboardPortfolioAccessTests(TestCase):
         )
         Payment.objects.create(
             tenant=tenant,
+            property=prop,
             amount=Decimal("100000"),
             bank_reference=f"TEST-{unit_number}",
             status="VERIFIED",
