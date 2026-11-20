@@ -4,69 +4,85 @@ Last updated: 20 November 2026
 Repository: https://github.com/Waryd000/smart-property-manager  
 Engineering branch: `loop/phase-01-dashboard-access`
 
-This is the canonical project tracker. Each module follows **Plan → Design → Develop → Test → Debug → Improve → Deploy**. A module is complete only when its acceptance tests pass and deployment is verified.
+Each module follows **Plan → Design → Develop → Test → Debug → Improve → Deploy**. A module is not complete until automated and acceptance tests pass and deployment is verified.
 
-## Verified baseline and engineering evidence
+## Verified baseline and evidence
 
-- [x] Inspected repository tree, Django settings, routes, models, views, forms, templates, tests, README and payment/import workflows.
-- [x] Confirmed this is a development foundation under active hardening, not yet production-ready.
-- [x] Confirmed redesigned templates are merged to `main`; local browser sync/acceptance remains open.
-- [x] Added initial migrations for accounts, properties, tenants, rent, payments and operations.
-- [x] Added migration consistency check, clean PostgreSQL migration and automated CI workflow.
-- [x] A fresh PostgreSQL CI run passed all 9 then-current tests; a second run passed after production-like settings and migrations were applied.
-- [x] Scoped dashboard counts, balances, arrears, review flags and recent payments to the user's visible properties.
-- [x] Added safe optional StaffProfile lookup; inactive staff profiles cannot retain manager access.
-- [x] Hardened payment verification to require exact bank reference and amount, prevent transaction reuse, and report excess as unallocated.
-- [x] Hardened production settings: require production secret key, hosts and CSRF origins; default HTTPS redirect and secure cookies outside DEBUG; set upload bounds and media root.
-- [x] Added tenancy model/form safeguards and database constraints for one active tenancy per unit and a required start date on active tenancies.
-- [x] Filtered prefetched tenant tenancy rows to the current staff user's assigned properties.
-- [ ] Run CI after tenancy migration reconciliation and the latest tenant visibility changes.
+- [x] Inspected source tree, Django settings, URLs, models, forms, views, templates, migrations, import command, tests, payment workflows and README.
+- [x] Confirmed frontend redesign merged on `main`; user local copy still needs synchronization/browser acceptance.
+- [x] Added initial migrations for six app schemas and incremental migrations for tenancy, payment, and operations controls.
+- [x] Added PostgreSQL-backed GitHub Actions CI with migration consistency check, fresh database migrate, Django system check and full test suite.
+- [x] Latest clean PostgreSQL CI run at commit `3a31b15f9760b33581a1dc48fb44036fbea7906f`: **76 tests passed**.
+- [x] In the same run, production Compose configuration validated and production Docker image built successfully.
+- [x] Hardened dashboard and staff access to property-assigned data; made StaffProfile role authoritative; restricted global Django Admin.
+- [x] Added manager-only property/unit setup; staff-facing maintenance and expense submission/approval workflows; audit events.
+- [x] Added tenant lifecycle rules and database constraints: active tenancy needs a start date; one active tenancy per unit.
+- [x] Added idempotent monthly rent generator, month-end due-date clamping and date-aware overdue display.
+- [x] Added payment statement import, pending payment recording, exact bank reference/amount match, property/tenant scoping and allocation.
+- [x] Added soft payment reversal with original allocation and bank evidence retained; active rent balances exclude reversed allocations.
+- [x] Added safe NAHA import dry-run, source markers, idempotency, duplicate/conflict checks, no spreadsheet rent imports and pending unverified tenancies.
+- [x] Added production settings, non-root Docker image, PostgreSQL/Redis/Celery/Caddy Compose stack, health endpoint, monthly scheduled rent task and encrypted backup/restore scripts.
+- [ ] Perform a real VPS deployment, certificate validation, external security scan and separate-environment backup restore drill.
 
 ## Module completion tracker
 
 | Module | Plan / Design | Develop | Test / Debug | Improve | Deploy |
 |---|---|---|---|---|---|
-| Repository baseline and CI | Complete | Complete | PostgreSQL runs passed; latest tenancy branch rerun pending | In progress | Not deployed |
-| Frontend shell and registers | Complete in GitHub main | Complete in GitHub main | Local browser sync/acceptance pending | Pending | Not deployed |
-| Authentication and staff profiles | Audited | Login/profile foundations exist | Provisioning, reset, 2FA, offboarding tests missing | Pending | Not deployed |
-| Dashboard and access isolation | Complete | Implemented on engineering branch | 3 PostgreSQL regression tests passed | Pending review/merge | Not deployed |
-| Landlords, properties and units | Audited | List/create foundations | CRUD, validation and permission coverage missing | Pending | Not deployed |
-| Tenants and tenancies | Complete | Lifecycle validation, database constraints and assignment-filtered tenant list implemented | 6 tenancy tests added; current CI rerun pending | In progress | Not deployed |
-| Rent generation and ledger | Audited | Monthly generator and allocation-derived paid/balance exist | Month-boundary, arrears, allocation, concurrency and reversals need wider tests | Pending | Not deployed |
-| Payments and bank reconciliation | Audited | Exact bank reference/amount verification, transaction uniqueness and oldest-charge allocation | 5 payment tests passed; tenancy/property scope, real statement import, reversals and credit/refund remain | In progress | Not deployed |
-| NAHA register import | JSON command exists | CLI dry-run/import foundation only | Idempotency, duplicate tenant resolution and source-data tests required | Pending | Not deployed |
-| Maintenance and expenses | Models/admin only | No full staff-facing workflows | Pending | Pending | Not deployed |
-| Utilities | Models/admin only | Deferred from first import by user instruction | Pending | Deferred | Not deployed |
-| Management fees and landlord statements | Minimal model | No complete invoicing/remittance workflow | Pending | Pending | Not deployed |
-| Audit, reporting and exports | AuditLog model exists | Consistent event writes/report screens missing | Pending | Pending | Not deployed |
-| Notifications | No complete provider workflow | Not implemented | Pending | Pending | Not deployed |
-| Production security | Settings hardening implemented on branch | File validation, 2FA, throttling and full audit hardening remain | Production deployment check and security test suite pending | In progress | Not deployed |
-| Cloud VPS deployment | Requirements documented | Not started | No VPS smoke test | Blocked on authorized VPS access | Not deployed |
-
-## Production blockers
-
-1. Enforce property-level permissions on every staff-facing read, create, update, delete, export, file-download and financial endpoint.
-2. Scope each payment to a tenancy/property; prevent a tenant's payment from being allocated against another property's charges.
-3. Complete import validation, deterministic tenant identity matching and duplicate handling; do not infer identity from name alone.
-4. Supply source workbook privately, run import dry-run, review ambiguous rows, then import tenant names without historical payments or utilities.
-5. Complete official bank statement upload/parser and date/reference/amount/currency matching. Do not accept a screenshot or free-form assertion as bank evidence.
-6. Implement controlled tenant credit/refund and payment reversal workflows with immutable audit history.
-7. Finish maintenance, expense, landlord accounting, management-fee and reporting screens or keep them outside first release.
-8. Complete file-type validation, 2FA, throttling, audit events, log retention, HTTPS, Nginx/Gunicorn and process supervision.
-9. Configure PostgreSQL private networking, Redis/Celery where required, encrypted off-site backups and verified restore.
-10. Complete user acceptance, reconciliation and security testing before real money or personal data is processed.
-
-## Deployment prerequisites
-
-Cloud VPS deployment remains **blocked** until an authorized target exists: VPS provider, hostname/IP, Ubuntu version, deployment user and safe SSH access method, domain/subdomain, TLS plan and backup/restore policy. Never share passwords or private SSH keys in chat or commit them to Git.
+| CI and schema | Complete | Complete | 76 PostgreSQL tests passed; clean migration check passed | Ongoing | CI only |
+| Frontend shell/registers | Complete in `main` | Complete in GitHub | Local copy/browser acceptance pending | Improve based on user review | Not deployed |
+| Authentication and staff administration | Audited | Basic profile model only; staff CRUD pending | Coverage missing for create/edit/deactivate/invite | Pending | Not deployed |
+| Dashboard and property access | Complete | Implemented | Staff/manager/inactive role tests pass | Further endpoint review pending | Not deployed |
+| Landlords/properties/units | Audited | List/create foundation | Manager-only create tests pass; edit/archive workflows pending | Pending | Not deployed |
+| Tenants/tenancies | Complete | Create/list, property scope, validation and DB constraints | Date, uniqueness, access and lifecycle tests pass | Agreement upload/download hardening pending | Not deployed |
+| Rent ledger | Complete | Monthly generation, allocations, live overdue view and scheduled task | Generator and visibility tests pass; monthly policy/proration acceptance pending | Pending | Not deployed |
+| Bank reconciliation | Complete | Normalized CSV ingestion, pending payment form, verify/allocate, reverse | Reference, date/amount conflict, tenant/property, upload, audit and reversal tests included | Real bank export format still needs mapping | Not deployed |
+| Maintenance | Complete | Staff report and manager status workflow | Property scope, role transition, cost and audit tests pass | Assigning technicians / attachments pending | Not deployed |
+| Expenses | Complete | Staff submit, manager approve/reject/mark paid | Property scope, reference-required payment, role and audit tests pass | Receipt evidence and accounting reports pending | Not deployed |
+| NAHA import | Complete | Safe JSON dry-run/idempotent command | Import tests included; actual source workbook not re-uploaded this session | Need reconcile source register | Not deployed |
+| Utilities | Deferred for first import by user instruction | Model only | No utility workflow tests/UI | Deferred | Not deployed |
+| Landlord fees/statements/remittance | Audited | Incomplete | Pending | Pending | Not deployed |
+| Reports/exports | Audited | Incomplete | Pending | Pending | Not deployed |
+| Private documents | Security requirement established | Private media volume; no public media route | Authenticated download route/upload validation pending | Pending | Not deployed |
+| Security/audit | Core access, settings and event logging implemented | Partial | 76 tests; full penetration/security review pending | Add rate-limits, 2FA, log retention, private media controls | Not deployed |
+| Cloud VPS deployment | Production stack prepared | Compose/Docker package committed on branch | Compose config and image build pass; no live server/restore drill | Host monitoring/offsite backups pending | Blocked on authorized VPS details |
 
 ## Operating requirements
 
 - Currency: UGX.
 - Time zone: Africa/Kampala.
 - Landlord display name: Waryd.
-- Initial properties: Bukesa, Sir Apollo and Kisenyi.
-- Import tenant names first; user will update rent values after review.
-- Leave water and utility data out of the initial import.
-- Keep Sir Apollo units 23 (MUHAMMAD) and 24 (joush) as Pending Verification until occupancy is explicitly confirmed.
-- Source workbook data and local `.env` must never be committed to Git.
+- First properties: Bukesa, Sir Apollo and Kisenyi.
+- Import tenant names first; rent values to be reviewed and entered by the manager.
+- Do not import historical payments or utilities in the first pass.
+- Sir Apollo units 23 (MUHAMMAD) and 24 (joush) remain Pending Verification until occupancy is confirmed.
+
+## Open production blockers
+
+1. Finish manager-controlled staff account CRUD, role/assignment changes and deactivation.
+2. Complete authenticated private agreement upload/download, file validation and malware scanning strategy.
+3. Review property-level authorization on every update/delete/export/report endpoint.
+4. Implement management fees, landlord statements and remittance reconciliation.
+5. Finalize rent proration/charge policy for mid-month start/end dates. Current generator creates the full monthly charge for a tenancy overlapping that month; get landlord approval before live use.
+6. Map and reconcile the actual official Equity Bank export format. The current parser expects a normalized reference/date/amount CSV.
+7. Finish maintenance attachments/technician assignment, expense receipt evidence and management reports.
+8. Complete 2FA/MFA policy, login throttling, secure headers review, audit log retention and external security test.
+9. Configure VPS monitoring, disk alerts, encrypted off-site backup copy and prove restore in staging.
+10. Complete user acceptance and financial reconciliation before handling real rent collections or personal data.
+
+## Cloud VPS deployment prerequisites
+
+The deployable Docker/Compose package is prepared, but deployment is not performed. It requires:
+- VPS provider and hostname/IP;
+- Ubuntu LTS version and non-root deployment account;
+- approved SSH/deploy-key access method (never send passwords or private SSH keys in chat);
+- production domain/subdomain with DNS pointing at the VPS;
+- SMTP details if email delivery is required;
+- designated encrypted off-site backup destination and restoration operator.
+
+The deployment uses Caddy automatic HTTPS, a private PostgreSQL/Redis network, Gunicorn, Celery worker/beat, and encrypted backup/restore scripts. A live deployment will not be reported complete until the real host responds over HTTPS and a backup restore has been demonstrated.
+
+## Security notes
+
+- The local development SECRET_KEY was disclosed earlier in the conversation; generate and use a new secret before deployment.
+- Keep `.env`, `.env.production`, source Excel registers, tenant data, SSH keys and backups out of Git.
+- Private tenancy agreements are not publicly served by the reverse proxy. Add authenticated downloads before staff access is enabled.
