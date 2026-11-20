@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.validators import MinValueValidator
 
@@ -29,6 +30,13 @@ class Payment(TimeStampedModel):
         related_name="payments",
     )
     amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0.01)])
+    unallocated_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        help_text="Verified payment funds not yet allocated to rent charges.",
+    )
     method = models.CharField(max_length=30, choices=METHOD, default="BANK_TRANSFER")
     bank_reference = models.CharField(max_length=120, unique=True)
     payment_date = models.DateTimeField(null=True, blank=True)
@@ -36,6 +44,34 @@ class Payment(TimeStampedModel):
     verified_at = models.DateTimeField(null=True, blank=True)
     verified_by = models.ForeignKey("auth.User", null=True, blank=True, on_delete=models.PROTECT)
     source_note = models.CharField(max_length=255, blank=True)
+
+    def clean(self):
+        super().clean()
+        errors = {}
+        if self.status == "VERIFIED":
+            if not self.property_id:
+                errors["property"] = "A verified payment must be linked to a property."
+            bank_transaction = BankTransaction.objects.filter(
+                bank_reference=self.bank_reference
+            ).first()
+            if bank_transaction is None:
+                errors["bank_reference"] = (
+                    "A verified payment must match an imported bank transaction."
+                )
+            else:
+                if bank_transaction.amount != self.amount:
+                    errors["amount"] = (
+                        "The payment amount must match the imported bank transaction."
+                    )
+                if (
+                    bank_transaction.matched_payment_id is not None
+                    and bank_transaction.matched_payment_id != self.pk
+                ):
+                    errors["bank_reference"] = (
+                        "This bank transaction is already matched to another payment."
+                    )
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self):
         return f"{self.bank_reference} - {self.amount}"
