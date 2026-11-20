@@ -246,7 +246,7 @@ class BankStatementImportViewTests(TestCase):
             self.url,
             {
                 "statement_file": self.upload(
-                    "reference,transaction_date,amount,narrative\\n"
+                    "reference,transaction_date,amount,narrative\n"
                     "EQ-UP-001,2026-11-20T10:15:00+03:00,250000,Incoming rent"
                 ),
             },
@@ -261,7 +261,7 @@ class BankStatementImportViewTests(TestCase):
     def test_identical_statement_upload_is_idempotent(self):
         self.client.force_login(self.manager)
         content = (
-            "reference,transaction_date,amount,narrative\\n"
+            "reference,transaction_date,amount,narrative\n"
             "EQ-UP-002,2026-11-20T10:15:00+03:00,175000,Incoming rent"
         )
         self.client.post(self.url, {"statement_file": self.upload(content)})
@@ -276,8 +276,8 @@ class BankStatementImportViewTests(TestCase):
     def test_invalid_row_rolls_back_entire_statement(self):
         self.client.force_login(self.manager)
         content = (
-            "reference,transaction_date,amount,narrative\\n"
-            "EQ-GOOD-003,2026-11-20T10:15:00+03:00,125000,Good credit\\n"
+            "reference,transaction_date,amount,narrative\n"
+            "EQ-GOOD-003,2026-11-20T10:15:00+03:00,125000,Good credit\n"
             "EQ-DEBIT-003,2026-11-20T10:16:00+03:00,-5000,Debit"
         )
         response = self.client.post(
@@ -295,7 +295,7 @@ class BankStatementImportViewTests(TestCase):
             self.url,
             {
                 "statement_file": self.upload(
-                    "reference,amount\\nEQ-MISSING-DATE,50000"
+                    "reference,amount\nEQ-MISSING-DATE,50000"
                 ),
             },
             follow=True,
@@ -315,7 +315,7 @@ class BankStatementImportViewTests(TestCase):
             self.url,
             {
                 "statement_file": self.upload(
-                    "reference,transaction_date,amount\\n"
+                    "reference,transaction_date,amount\n"
                     "EQ-NO-ACCESS,2026-11-20T10:15:00+03:00,50000"
                 ),
             },
