@@ -71,9 +71,9 @@ def dashboard(request):
     recent_payments = (
         Payment.objects.filter(
             status="VERIFIED",
-            tenant__tenancies__unit__property__in=properties,
+            property__in=properties,
         )
-        .select_related("tenant")
+        .select_related("tenant", "property")
         .distinct()
         .order_by("-verified_at")[:8]
     )
