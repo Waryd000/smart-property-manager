@@ -6,6 +6,7 @@ from core.views import dashboard, health_check
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+    path("staff/", include("accounts.urls")),
     path("healthz/", health_check, name="health-check"),
     path("", dashboard, name="dashboard"),
     path("properties/", include("properties.urls")),
