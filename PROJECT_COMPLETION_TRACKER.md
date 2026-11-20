@@ -2,70 +2,68 @@
 
 Last updated: 20 November 2026  
 Repository: https://github.com/Waryd000/smart-property-manager  
-Branch for current hardening cycle: `loop/phase-01-dashboard-access`
+Engineering branch: `loop/phase-01-dashboard-access`
 
-This tracker records verified repository work separately from local-user actions and items that still require a live VPS or bank-provider environment. A code change is not marked complete until its tests have run successfully.
+This is the canonical project tracker. Each module follows **Plan → Design → Develop → Test → Debug → Improve → Deploy**. A module is complete only when its acceptance tests pass and deployment is verified.
 
-## Loop Engineering cycle
+## Verified baseline and engineering evidence
 
-| Cycle stage | Current status | Evidence / next action |
-|---|---|---|
-| Plan | In progress | Repository and module audit started; risks and deployment gaps documented below. |
-| Design | In progress | Responsive frontend is merged to `main`; financial and access-control designs need completion. |
-| Develop | In progress | Dashboard property scoping and bank-transaction verification safeguards are implemented on the current branch. |
-| Test | In progress | Regression tests added. PostgreSQL GitHub Actions job now generates the current model migrations in its disposable runner, applies them, runs the test suite and uploads the generated migration files; waiting for the new run result. Local runner cannot install Django because package-index network access is unavailable. |
-| Debug | In progress | Previously exposed dashboard data and unverified payment approval paths are addressed in code; further failures depend on test results. |
-| Improve | In progress | Import workflow, maintenance/expense modules, reporting and audit coverage remain. |
-| Deploy | Blocked | No VPS host, SSH/deployment credentials, domain, TLS details, or production database/backup configuration have been supplied. Do not deploy without these. |
+- [x] Inspected the repository tree, Django settings, routes, models, views, forms, templates, tests, README and payment/import workflows.
+- [x] Confirmed this is an actively developed Django/PostgreSQL foundation, not yet production-ready.
+- [x] Confirmed redesigned templates are merged on `main`; local browser copy still needs to be synced and verified by the user.
+- [x] Added initial migrations for `accounts`, `properties`, `tenants`, `rent`, `payments` and `operations`.
+- [x] Added CI migration consistency check, fresh PostgreSQL migration and automated test run.
+- [x] First PostgreSQL CI test run passed: 9 tests passed (dashboard staff/manager/inactive-profile isolation, due-date clamp, and payment bank-reference/amount match, allocation, idempotency and overpayment tests).
+- [x] Scoped dashboard counts, balances, arrears, review flags and recent payments to a user's visible properties.
+- [x] Added safe optional StaffProfile lookup and blocked inactive StaffProfiles from retaining manager access.
+- [x] Hardened payment verification to require an exact bank reference and amount match, prevent transaction reuse and show verified unallocated excess explicitly.
+- [x] Added PostgreSQL-backed GitHub Actions CI.
 
-## Module completion
+## Module completion tracker
 
-| Module | Repository state | Completion |
-|---|---|---:|
-| Authentication and staff profiles | Django login and StaffProfile exist; account provisioning, password reset, 2FA and offboarding controls need work. | Partial |
-| Landlords, properties and units | Models, admin, list/create screens exist. Update/delete flows, full authorization tests and validation need work. | Partial |
-| Tenants and tenancies | Models, forms, list/create screens exist. Tenant identity/deduplication, tenancy lifecycle and overlap protection need work. | Partial |
-| Dashboard | Counts, review flags, balances, payment activity exist. Per-user property scoping is being hardened with tests. | In progress |
-| Rent | Monthly charge generation and allocation-derived paid/balance values exist. Comprehensive arrears, month-boundary, status and reversal tests remain. | Partial |
-| Payments and bank reconciliation | Payment models and allocation exist. Verification now requires exact imported bank reference + amount match on this branch. Statement upload/parser, matching UI, reversal, refund and tenant-credit workflows remain. | In progress |
-| Excel register import | JSON management command with dry-run exists in `main`; source workbook JSON is not in repository. Import UI, review resolution, safer identity matching, real data dry-run and verified import remain. | Partial |
-| Maintenance and expenses | Data models and admin registration exist; staff-facing workflows, approvals, supplier records and tests are missing. | Not complete |
-| Utilities | Models exist, but user requested these be deferred for current initial import. Utility screens and billing remain out of current first release scope. | Deferred |
-| Management fees and landlord statements | Minimal ManagementFee model exists; invoicing, receipts, balances, remittance and statements are not implemented. | Not complete |
-| Audit and reporting | AuditLog model exists, but important changes are not yet consistently written to it; reports/export screens remain. | Not complete |
-| Notifications | No complete SMS/email provider, consent, delivery log, retries or templates. | Not complete |
-| Migrations and schema lifecycle | Initial migrations for accounts, properties, tenants, rent, payments and operations are now committed. CI checks that migrations match current models and applies them to a fresh PostgreSQL service. Test run confirmation remains pending. | In progress |
-| Automated testing | Existing tests were very limited; dashboard isolation and payment reconciliation tests added on current branch. A PostgreSQL CI workflow was added but has not yet reported a green run. | In progress |
-| Production security | Current settings need production-only security headers/cookies, strict CSRF origins, HTTPS proxy configuration, secrets policy, file upload validation, backup/restore and security testing. | Not complete |
-| Cloud VPS deployment | No deployment scripts, web server/systemd configuration, domain or VPS access details available. | Blocked |
+| Module | Plan / Design | Develop | Test / Debug | Improve | Deploy |
+|---|---|---|---|---|---|
+| Repository baseline and CI | Complete | Complete | 9 tests passed in initial CI run; fresh-migration CI rerun pending | In progress | Not deployed |
+| Frontend shell and registers | Complete in GitHub main | Complete in GitHub main | Local browser sync/acceptance still pending | Pending | Not deployed |
+| Authentication and staff profiles | Audited | Login/profile foundations exist | Account provisioning, password reset, 2FA and offboarding coverage missing | Pending | Not deployed |
+| Dashboard and access isolation | Complete | Implemented on engineering branch | 3 PostgreSQL regression tests passed | Pending code review/merge | Not deployed |
+| Landlords, properties and units | Audited | List/create foundations only | CRUD, validation, staff permission tests missing | Pending | Not deployed |
+| Tenants and tenancies | Audited | List/create foundations only | Identity deduplication, lifecycle, overlap guard and permission tests missing | Pending | Not deployed |
+| Rent generation and ledger | Audited | Monthly generator and allocation-derived paid/balance fields exist | Partial, arrears, concurrency, month-boundary and reversal tests needed | Pending | Not deployed |
+| Payments and bank reconciliation | Audited | Exact bank reference/amount verification and oldest-charge allocation added | 5 tests passed; real bank statement parser/upload, date validation, reversal and credit/refund flows remain | In progress | Not deployed |
+| NAHA register import | JSON command exists | CLI dry-run/import foundation only | Idempotency, duplicate tenant resolution and source-data tests needed | Pending | Not deployed |
+| Maintenance and expenses | Models/admin only | No full staff-facing workflows | Pending | Pending | Not deployed |
+| Utilities | Models/admin only | Deferred from first import by user instruction | Pending | Deferred | Not deployed |
+| Management fees and landlord statements | Minimal model | No complete invoicing/remittance workflow | Pending | Pending | Not deployed |
+| Audit, reporting and exports | AuditLog model exists | Consistent event writes and report pages missing | Pending | Pending | Not deployed |
+| Notifications | No complete provider workflow | Not implemented | Pending | Pending | Not deployed |
+| Production security | Settings hardening under development | No full file validation, 2FA, throttling or security audit | Full security review and restore test pending | In progress | Not deployed |
+| Cloud VPS deployment | Requirements documented | Not started | No VPS smoke test | Blocked on authorized VPS access | Not deployed |
 
-## Confirmed issues and safeguards
+## Production blockers
 
-- Dashboard data must be scoped to the current user's visible properties, including counts, balances, overdue charges, recent payments and source-review flags.
-- An inactive staff profile must not inherit manager rights through Django's `is_staff` flag.
-- A pending payment must not be verified without an imported bank transaction with the same reference and amount.
-- A bank transaction must not be matched to more than one payment.
-- Any verified amount left after rent allocation must be visible as unallocated; a controlled tenant-credit/refund workflow is still required.
-- Historical figures in the source Excel workbook must not be presented as verified bank payments.
-- Sir Apollo units 23 (MUHAMMAD) and 24 (joush) remain pending occupancy verification until the user confirms their current status.
-- The source Excel register data is private and must not be committed to this repository.
+1. Enforce property-level permissions on every staff-facing read, create, update, delete, export, file-download and financial endpoint.
+2. Add a database-level rule or transactional service guard against overlapping active tenancies on the same unit.
+3. Complete import file validation, deterministic tenant identity matching and duplicate handling; do not infer identity from name alone.
+4. Supply the source workbook privately, run an import dry run, review ambiguous rows, then import tenant names without historical payments or utilities.
+5. Complete official bank statement upload/parser and date/reference/amount/currency matching. Do not accept a screenshot or free-form manual assertion as bank evidence.
+6. Implement controlled tenant credit/refund and payment reversal workflows with immutable audit history.
+7. Finish maintenance, expense, landlord accounting, management-fee and reporting screens or keep them explicitly outside the first release.
+8. Complete file-type/size validation, production security settings, 2FA/OTP policy, throttling, audit events and log retention.
+9. Configure HTTPS, Nginx, Gunicorn, process supervision, PostgreSQL private networking, Redis/Celery where required, encrypted off-site backups and verified restoration.
+10. Complete user acceptance, reconciliation and security testing before real money or personal data is processed.
 
-## Required before production deployment
+## Deployment prerequisites
 
-1. Commit and test initial Django migrations.
-2. Obtain a green PostgreSQL CI run and build comprehensive tests for authorization, rent calculations, imports and payment reconciliation.
-3. Finish import UI and execute a dry run on the user's supplied current registers; obtain explicit review of ambiguous records.
-4. Complete payment statement ingestion and reconciliation using an actual bank-provided statement specification/sample.
-5. Complete staff workflows, audit trails, landlord accounting, reports and backups.
-6. Configure production environment variables and hardening; rotate the Django secret key that was previously exposed during development.
-7. Obtain VPS connection details, deployment user, DNS/domain and TLS plan; deploy and verify health checks, backups and rollback.
+Cloud VPS deployment remains **blocked** until an authorized connection and deployment target exist: VPS provider, hostname/IP, Ubuntu version, deployment user and safe SSH access method, domain/subdomain, TLS plan and backup/restore policy. Never share passwords or private SSH keys in chat or commit them to Git.
 
-## User-specific operating rules
+## Operating requirements
 
 - Currency: UGX.
 - Time zone: Africa/Kampala.
-- Initial properties: Bukesa, Sir Apollo and Kisenyi.
 - Landlord display name: Waryd.
-- Import tenant names and records first; update rent values after review where needed.
-- Do not import water or utility records in the first import.
-- Keep uncertain occupancy records pending verification, especially Sir Apollo units 23 and 24.
+- Initial properties: Bukesa, Sir Apollo and Kisenyi.
+- Import tenant names first; the user will update rent values after review.
+- Leave water and utility data out of the initial import.
+- Keep Sir Apollo units 23 (MUHAMMAD) and 24 (joush) as Pending Verification until occupancy is explicitly confirmed.
+- Source workbook data and the local `.env` must never be committed to Git.
