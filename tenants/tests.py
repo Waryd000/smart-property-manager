@@ -54,6 +54,22 @@ class TenancyIntegrityTests(TestCase):
             tenancy.full_clean()
         self.assertIn("start_date", raised.exception.message_dict)
 
+    def test_database_constraint_rejects_active_tenancy_without_start_date(self):
+        tenant = Tenant.objects.create(full_name="No Date Tenant")
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Tenancy.objects.create(
+                    tenant=tenant,
+                    unit=Unit.objects.create(
+                        property=self.unit.property,
+                        unit_number="A2",
+                        monthly_rent=Decimal("250000"),
+                    ),
+                    start_date=None,
+                    monthly_rent=Decimal("250000"),
+                    status="ACTIVE",
+                )
+
     def test_end_date_cannot_precede_start_date(self):
         tenancy = self.build_tenancy(
             start_date=date(2026, 3, 10),
