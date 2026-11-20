@@ -44,6 +44,10 @@ class Tenancy(TimeStampedModel):
     class Meta:
         indexes = [models.Index(fields=["status", "start_date"])]
         constraints = [
+            models.CheckConstraint(
+                condition=~(Q(status="ACTIVE") & Q(start_date__isnull=True)),
+                name="active_tenancy_requires_start_date",
+            ),
             models.UniqueConstraint(
                 fields=["unit"],
                 condition=Q(status="ACTIVE"),
