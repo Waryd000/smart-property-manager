@@ -15,7 +15,7 @@
 
 <section class="spm-card overflow-hidden">
   <div class="p-3 p-lg-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
-    <div><h2 class="h5 fw-bold mb-1">Registered tenants</h2><p class="small text-secondary mb-0">Tenant and linked rental information</p></div>
+    <div><h2 class="h5 fw-bold mb-1">Registered tenants</h2><p class="small text-secondary mb-0">Only tenants and tenancy details in your assigned properties are shown.</p></div>
     <span class="badge rounded-pill text-bg-light border text-secondary">Tenant records</span>
   </div>
   <div class="table-responsive">
@@ -35,6 +35,15 @@
               {% elif tenancy.status == "PENDING" %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Pending</span>
               {% else %}<span class="badge rounded-pill text-bg-secondary-subtle text-secondary-emphasis">{{ tenancy.get_status_display }}</span>{% endif %}
             </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td><div class="d-flex align-items-center gap-2"><span class="spm-user-dot">{{ t.full_name|slice:":1"|upper }}</span><span class="fw-semibold">{{ t.full_name }}</span></div></td>
+            <td>{{ t.phone|default:"—" }}</td>
+            <td>{{ t.email|default:"—" }}</td>
+            <td class="text-secondary">Not assigned yet</td>
+            <td>—</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="tenancies/new/?tenant={{ t.pk }}">Create tenancy</a></td>
           </tr>
           {% endfor %}
         {% empty %}
