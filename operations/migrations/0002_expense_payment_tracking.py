@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -11,6 +14,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name="expense",
+            name="amount",
+            field=models.DecimalField(
+                decimal_places=2,
+                max_digits=14,
+                validators=[MinValueValidator(Decimal("0.01"))],
+            ),
+        ),
         migrations.AddField(
             model_name="expense",
             name="paid_at",
