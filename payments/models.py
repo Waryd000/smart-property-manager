@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -120,7 +122,7 @@ class BankTransaction(TimeStampedModel):
     amount = models.DecimalField(
         max_digits=14,
         decimal_places=2,
-        validators=[MinValueValidator(0.01)],
+        validators=[MinValueValidator(Decimal("0.01"))],
     )
     narrative = models.CharField(max_length=255, blank=True)
     matched_payment = models.OneToOneField(
