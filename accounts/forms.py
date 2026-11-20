@@ -88,7 +88,7 @@ class StaffUpdateForm(forms.Form):
             status="ACTIVE"
         ).order_by("name")
         if not actor.is_superuser:
-            self.fields["role"].choices = [("STAFF", "Staff")]
+            self.fields["role"].choices = [(profile.role, profile.get_role_display())]
             self.fields["role"].disabled = True
         if profile.user.is_superuser and not actor.is_superuser:
             raise ValidationError("Only a superuser can administer a superuser account.")
