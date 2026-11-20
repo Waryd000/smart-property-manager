@@ -1,0 +1,693 @@
+{
+  "source_file": "NAHA ASSETS 11234.xlsx",
+  "landlord": {
+    "full_name": "Waryd",
+    "notes": "Landlord name supplied by user. Confirm full registered/legal name before formal agreements or tax records."
+  },
+  "properties": [
+    {
+      "name": "Bukesa",
+      "address": "Bukesa, Kampala, Uganda — exact address to be confirmed",
+      "description": "Imported from latest register section in NAHA ASSETS 11234.xlsx.",
+      "units": [
+        {
+          "unit_number": "1",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "SHEWIT",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "2",
+          "monthly_rent": 350000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "TIITI /WEZENET",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "3",
+          "monthly_rent": 350000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "MILLEY",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "4",
+          "monthly_rent": 350000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "TEKLE / Firomsa",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "5",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "EDWARD",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "6",
+          "monthly_rent": 210000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "RIYADHI",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "7",
+          "monthly_rent": 210000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "DEREGE",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "8",
+          "monthly_rent": 200000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "OBSE TAYE",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "9",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "KIDOI FISH",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "10",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ABEBE",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "11",
+          "monthly_rent": 350000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "DIDO",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "12",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "SAMRI",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "13",
+          "monthly_rent": 250000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "YONAS KINFE",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "14",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "YOHANA",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "15",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ISAAC",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "16",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "SENU",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "17",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ABIDI EBISA",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "18",
+          "monthly_rent": 600000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ERMIYAS",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "19",
+          "monthly_rent": 500000,
+          "status": "VACANT",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only. REVIEW: Source marks unit as Empty; tenant not imported."
+        },
+        {
+          "unit_number": "20",
+          "monthly_rent": 600000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "MBABZI JOWELIYA",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "21",
+          "monthly_rent": 600000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NABAGALA AZRAH",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "22",
+          "monthly_rent": 600000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "KIWALABYE DICKSON",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        }
+      ]
+    },
+    {
+      "name": "Sir Apollo",
+      "address": "Sir Apollo, Kampala, Uganda — exact address to be confirmed",
+      "description": "Imported from latest register section in NAHA ASSETS 11234.xlsx.",
+      "units": [
+        {
+          "unit_number": "1",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "SHARON",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "2",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ATWEJUKA KETRA",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "3",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Ahmed Mohammd",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "4",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ADAM / YASSIN",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "5",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Henok",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "6",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Chair",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "7",
+          "monthly_rent": 250000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Namusoke Jane",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "8",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Emiyasi",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "9",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ALI ABUBAKAR\\ ANAS",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "10",
+          "monthly_rent": 250000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "LINET",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "11",
+          "monthly_rent": 400000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Recheal Abayo",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "12",
+          "monthly_rent": 400000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "JANNANT",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "13",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Kamara Beatrice",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "14",
+          "monthly_rent": 0,
+          "status": "VACANT",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only. REVIEW: Source marks unit FREE; tenant name not imported as an active tenancy."
+        },
+        {
+          "unit_number": "15",
+          "monthly_rent": 0,
+          "status": "VACANT",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only. REVIEW: Source marks unit FREE; tenant name not imported as an active tenancy."
+        },
+        {
+          "unit_number": "16",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Ibrahim",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "17",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Metkel",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "18",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "Nohom Gebrehivet",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "19",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "nakaweesa Sabiha",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "20",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "MUHAMOOD/JECCA",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "21",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NGMALDEEN /nasir",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "22",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "JECCA/MUHAMOOD",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        }
+      ]
+    },
+    {
+      "name": "Kisenyi",
+      "address": "Kisenyi, Kampala, Uganda — exact address to be confirmed",
+      "description": "Imported from latest register section in NAHA ASSETS 11234.xlsx.",
+      "units": [
+        {
+          "unit_number": "1",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NALUMU NURUYAT",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "2",
+          "monthly_rent": 1000000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NAKAFEERO JASENT",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "3",
+          "monthly_rent": 1000000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "ONEN CHARITY",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "4",
+          "monthly_rent": 1000000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "MULINDWA SAM",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "5",
+          "monthly_rent": 1000000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NSUBUGA MOHAMMAD",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "6",
+          "monthly_rent": 250000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "JAJAA KISOLO",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "7",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "SEGUYA MICHEAL",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "8",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "SSENGOBA WILBEFORCE",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "9",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "MUGWEWA STEVEN",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "10",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NASSAKA AGGIE",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "11",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "MUTESASIRA MUHAMMAD",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "12",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "MUBIRU UTHMAN",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "13-REVIEW",
+          "monthly_rent": 300000,
+          "status": "PENDING_VERIFICATION",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only. REVIEW: Source row 371 has tenant NSUBUGA MOHAMMAD but unit number is blank; not linked to a tenancy."
+        },
+        {
+          "unit_number": "14",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "HASSAN WASSAW",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "15",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NALUMU NURUYAT",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "16",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only.",
+          "tenant": {
+            "full_name": "NALUMU NURUYAT",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx."
+          },
+          "tenancy_status": "PENDING"
+        },
+        {
+          "unit_number": "17-REVIEW",
+          "monthly_rent": 300000,
+          "status": "PENDING_VERIFICATION",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only. REVIEW: Source row 375 has a date in unit-number column; NTAMBI JOHN not linked to a tenancy."
+        },
+        {
+          "unit_number": "18-REVIEW",
+          "monthly_rent": 1000000,
+          "status": "PENDING_VERIFICATION",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only. REVIEW: Source tenant field says PRINT; confirm whether this is a tenant name or register note."
+        },
+        {
+          "unit_number": "19",
+          "monthly_rent": 300000,
+          "status": "OCCUPIED",
+          "notes": "Imported from NAHA ASSETS 11234.xlsx; latest register section only. REVIEW: Source has 'store' in end-date column; confirm unit type and tenancy details.",
+          "tenant": {
+            "full_name": "NSUBUGA MOHAMMAD",
+            "notes": "Imported from NAHA ASSETS 11234.xlsx. REVIEW: Source has 'store' in end-date column; confirm unit type and tenancy details."
+          },
+          "tenancy_status": "PENDING"
+        }
+      ]
+    }
+  ]
+}
