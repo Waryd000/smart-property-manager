@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.urls import reverse
 
 from accounts.models import StaffProfile
+from operations.models import AuditLog
 from payments.models import BankTransaction, Payment, PaymentAllocation
 from payments.services import import_equity_statement_row, verify_and_allocate
 from properties.models import Landlord, Property, Unit
@@ -98,6 +99,13 @@ class PaymentVerificationTests(TestCase):
         self.assertEqual(bank_transaction.reconciliation_status, "MATCHED")
         self.assertEqual(PaymentAllocation.objects.count(), 1)
         self.assertEqual(verified.unallocated_amount, Decimal("0.00"))
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action="PAYMENT_VERIFIED",
+                model_name="Payment",
+                record_id=str(self.payment.pk),
+            ).exists()
+        )
 
     def test_overpayment_is_not_silently_allocated(self):
         self.payment.amount = Decimal("120000")
@@ -258,6 +266,12 @@ class BankStatementImportViewTests(TestCase):
         tx = BankTransaction.objects.get(bank_reference="EQ-UP-001")
         self.assertEqual(tx.amount, Decimal("250000"))
         self.assertEqual(tx.reconciliation_status, "UNMATCHED")
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action="BANK_STATEMENT_IMPORTED",
+                model_name="BankTransaction",
+            ).exists()
+        )
 
     def test_identical_statement_upload_is_idempotent(self):
         self.client.force_login(self.manager)
