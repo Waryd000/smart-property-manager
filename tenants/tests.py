@@ -110,3 +110,72 @@ class TenancyIntegrityTests(TestCase):
             Tenancy.objects.filter(unit=self.unit, status="ACTIVE").count(),
             1,
         )
+
+
+class TenantPortfolioVisibilityTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        from accounts.models import StaffProfile
+        from properties.models import PropertyAssignment
+
+        user_model = get_user_model()
+        self.staff = user_model.objects.create_user(
+            username="property-staff",
+            password="test-password",
+        )
+        StaffProfile.objects.create(user=self.staff, role="STAFF", is_active=True)
+
+        landlord = Landlord.objects.create(full_name="Portfolio Landlord")
+        self.assigned_property = Property.objects.create(
+            landlord=landlord,
+            name="Assigned Property",
+            address="Kampala",
+        )
+        self.other_property = Property.objects.create(
+            landlord=landlord,
+            name="Other Property",
+            address="Kampala",
+        )
+        self.assigned_unit = Unit.objects.create(
+            property=self.assigned_property,
+            unit_number="A1",
+            monthly_rent=Decimal("250000"),
+        )
+        self.other_unit = Unit.objects.create(
+            property=self.other_property,
+            unit_number="B1",
+            monthly_rent=Decimal("250000"),
+        )
+        tenant = Tenant.objects.create(full_name="Shared Tenant")
+        Tenancy.objects.create(
+            tenant=tenant,
+            unit=self.assigned_unit,
+            start_date=date(2026, 1, 1),
+            monthly_rent=Decimal("250000"),
+            status="ACTIVE",
+        )
+        Tenancy.objects.create(
+            tenant=tenant,
+            unit=self.other_unit,
+            start_date=date(2026, 1, 1),
+            monthly_rent=Decimal("250000"),
+            status="ACTIVE",
+        )
+        PropertyAssignment.objects.create(
+            property=self.assigned_property,
+            staff=self.staff,
+        )
+
+    def test_staff_only_sees_tenancies_on_assigned_properties(self):
+        from django.urls import reverse
+
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse("tenant-list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["tenants"]), 1)
+        tenant = response.context["tenants"][0]
+        visible_tenancies = list(tenant.tenancies.all())
+        self.assertEqual(len(visible_tenancies), 1)
+        self.assertEqual(visible_tenancies[0].unit, self.assigned_unit)
