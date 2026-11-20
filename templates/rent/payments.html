@@ -7,7 +7,10 @@
   <p class="spm-subtitle">Review payment entries and their verification status.</p>
 </div>
 {% if can_manage %}
-<div class="mb-3"><a href="{% url 'bank-statement-import' %}" class="btn btn-primary"><i class="bi bi-cloud-arrow-up me-2"></i>Import bank statement</a></div>
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a href="{% url 'payment-create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-2"></i>Record pending payment</a>
+  <a href="{% url 'bank-statement-import' %}" class="btn btn-outline-primary"><i class="bi bi-cloud-arrow-up me-2"></i>Import bank statement</a>
+</div>
 {% endif %}
 <div class="alert alert-info border-0 rounded-3 small mb-4"><i class="bi bi-shield-check me-2"></i>Only verify payments after matching them to genuine bank-originated transaction records. A tenant screenshot alone is not proof of receipt.</div>
 <section class="spm-card overflow-hidden">
