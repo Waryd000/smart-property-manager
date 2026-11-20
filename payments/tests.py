@@ -501,8 +501,6 @@ class PaymentRecordViewTests(TestCase):
 
 class PaymentDateAndBankAmountTests(TestCase):
     def setUp(self):
-        from payments.tests import PaymentVerificationTests
-
         self.user = get_user_model().objects.create_user(
             username="payment-date-manager",
             password="test-password",
