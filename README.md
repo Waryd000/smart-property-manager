@@ -26,8 +26,8 @@ Copy-Item .env.example .env
 ```
 Edit `.env` with a strong secret key and your PostgreSQL credentials. Create the database and user in PostgreSQL, then:
 ```powershell
-python manage.py makemigrations accounts properties tenants rent payments operations
 python manage.py migrate
+python manage.py check
 python manage.py createsuperuser
 python manage.py runserver
 ```
