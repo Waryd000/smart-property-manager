@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="tenancy",
             constraint=models.CheckConstraint(
-                condition=~Q(status="ACTIVE") | Q(start_date__isnull=False),
+                condition=~(Q(status="ACTIVE") & Q(start_date__isnull=True)),
                 name="active_tenancy_requires_start_date",
             ),
         ),
