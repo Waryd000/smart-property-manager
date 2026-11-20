@@ -84,6 +84,9 @@
     <div class="spm-nav-label mt-4">Administration</div>
     <nav>
       {% if request.user.is_staff %}
+      <a class="spm-nav-link" href="/staff/"><i class="bi bi-person-gear"></i> Staff management</a>
+      {% endif %}
+      {% if request.user.is_superuser %}
       <a class="spm-nav-link" href="/admin/"><i class="bi bi-gear"></i> Admin settings</a>
       {% endif %}
     </nav>
@@ -110,7 +113,8 @@
           <li><a class="dropdown-item rounded-2" href="/payments/"><i class="bi bi-wallet2 me-2"></i>Payments</a></li>
           <li><a class="dropdown-item rounded-2" href="/operations/maintenance/"><i class="bi bi-tools me-2"></i>Maintenance</a></li>
           <li><a class="dropdown-item rounded-2" href="/operations/expenses/"><i class="bi bi-receipt-cutoff me-2"></i>Expenses</a></li>
-          {% if request.user.is_staff %}<li><hr class="dropdown-divider"></li><li><a class="dropdown-item rounded-2" href="/admin/"><i class="bi bi-gear me-2"></i>Admin settings</a></li>{% endif %}
+          {% if request.user.is_staff %}<li><a class="dropdown-item rounded-2" href="/staff/"><i class="bi bi-person-gear me-2"></i>Staff management</a></li>{% endif %}
+          {% if request.user.is_superuser %}<li><hr class="dropdown-divider"></li><li><a class="dropdown-item rounded-2" href="/admin/"><i class="bi bi-gear me-2"></i>Admin settings</a></li>{% endif %}
         </ul>
       </div>
       <div class="d-flex align-items-center gap-3">
