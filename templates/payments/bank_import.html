@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Import bank statement · Smart Property Manager{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div>
+    <div class="spm-eyebrow">Payment reconciliation</div>
+    <h1 class="spm-page-title">Import bank transactions</h1>
+    <p class="spm-subtitle">Load an incoming-credit CSV so payment references can be matched before verification.</p>
+  </div>
+  <a href="{% url 'payment-list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-2"></i>Back to payments</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <section class="spm-card p-3 p-lg-4">
+      <h2 class="h5 fw-bold mb-2">Upload CSV file</h2>
+      <p class="small text-secondary mb-4">Only incoming credits are accepted. This import does not verify payments or allocate rent by itself.</p>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="mb-3">
+          <label for="{{ form.statement_file.id_for_label }}" class="form-label fw-semibold">{{ form.statement_file.label }}</label>
+          {{ form.statement_file }}
+          {% if form.statement_file.help_text %}<div class="form-text">{{ form.statement_file.help_text }}</div>{% endif %}
+          {% for error in form.statement_file.errors %}<div class="small text-danger mt-1">{{ error }}</div>{% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-up me-2"></i>Import transactions</button>
+      </form>
+    </section>
+  </div>
+  <div class="col-lg-5">
+    <section class="spm-card p-3 p-lg-4 h-100">
+      <h2 class="h6 fw-bold mb-3">Required CSV format</h2>
+      <p class="small text-secondary">Use UTF-8 comma-separated values with these exact column names:</p>
+      <div class="bg-light rounded-3 p-3 small font-monospace mb-3">
+        reference,transaction_date,amount,narrative<br>
+        EQ-REF-001,2026-11-20T10:15:00+03:00,250000,Incoming rent payment
+      </div>
+      <div class="small text-secondary">
+        <div class="mb-2"><strong>reference</strong> — unique bank transaction reference</div>
+        <div class="mb-2"><strong>transaction_date</strong> — ISO 8601 date/time</div>
+        <div class="mb-2"><strong>amount</strong> — positive incoming amount in UGX</div>
+        <div><strong>narrative</strong> — optional bank description</div>
+      </div>
+      <hr>
+      <ul class="small text-secondary mb-0 ps-3">
+        <li>Maximum file size: 5 MB</li>
+        <li>Maximum 5,000 transaction rows</li>
+        <li>Debit and zero-value rows are rejected</li>
+        <li>Identical references are safely skipped; conflicting duplicates reject the entire file</li>
+        <li>All rows are imported together or none are imported</li>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}
