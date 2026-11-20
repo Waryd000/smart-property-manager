@@ -179,3 +179,105 @@ class TenantPortfolioVisibilityTests(TestCase):
         visible_tenancies = list(tenant.tenancies.all())
         self.assertEqual(len(visible_tenancies), 1)
         self.assertEqual(visible_tenancies[0].unit, self.assigned_unit)
+
+
+class TenantCreationScopeTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        from accounts.models import StaffProfile
+        from properties.models import PropertyAssignment
+
+        user_model = get_user_model()
+        self.staff = user_model.objects.create_user(
+            username="tenant-creator",
+            password="test-password",
+        )
+        StaffProfile.objects.create(user=self.staff, role="STAFF", is_active=True)
+
+        landlord = Landlord.objects.create(full_name="Creation Landlord")
+        self.allowed_property = Property.objects.create(
+            landlord=landlord,
+            name="Allowed Property",
+            address="Kampala",
+        )
+        self.other_property = Property.objects.create(
+            landlord=landlord,
+            name="Other Property",
+            address="Kampala",
+        )
+        self.allowed_unit = Unit.objects.create(
+            property=self.allowed_property,
+            unit_number="C1",
+            monthly_rent=Decimal("180000"),
+        )
+        self.other_tenant = Tenant.objects.create(full_name="Other Portfolio Tenant")
+        other_unit = Unit.objects.create(
+            property=self.other_property,
+            unit_number="D1",
+            monthly_rent=Decimal("180000"),
+        )
+        Tenancy.objects.create(
+            tenant=self.other_tenant,
+            unit=other_unit,
+            start_date=date(2026, 1, 1),
+            monthly_rent=Decimal("180000"),
+            status="ACTIVE",
+        )
+        PropertyAssignment.objects.create(
+            property=self.allowed_property,
+            staff=self.staff,
+        )
+
+    def test_new_tenant_profile_is_owned_by_creator_and_visible_without_tenancy(self):
+        from django.urls import reverse
+
+        self.client.force_login(self.staff)
+        response = self.client.post(
+            reverse("tenant-create"),
+            {"full_name": "New Staff Tenant"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        tenant = Tenant.objects.get(full_name="New Staff Tenant")
+        self.assertEqual(tenant.created_by, self.staff)
+
+        listing = self.client.get(reverse("tenant-list"))
+        self.assertEqual(listing.status_code, 200)
+        self.assertIn(tenant, listing.context["tenants"])
+        self.assertEqual(list(tenant.tenancies.all()), [])
+
+    def test_tenancy_form_only_offers_visible_or_creator_owned_tenants(self):
+        from django.urls import reverse
+
+        own_unassigned = Tenant.objects.create(
+            full_name="Owned Unassigned Tenant",
+            created_by=self.staff,
+        )
+        self.client.force_login(self.staff)
+        response = self.client.get(
+            f"{reverse('tenancy-create')}?tenant={own_unassigned.pk}"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        choices = list(response.context["form"].fields["tenant"].queryset)
+        self.assertIn(own_unassigned, choices)
+        self.assertNotIn(self.other_tenant, choices)
+        units = list(response.context["form"].fields["unit"].queryset)
+        self.assertEqual(units, [self.allowed_unit])
+
+    def test_staff_without_property_assignment_cannot_create_tenant(self):
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+
+        unassigned = get_user_model().objects.create_user(
+            username="unassigned-staff",
+            password="test-password",
+        )
+        self.client.force_login(unassigned)
+        response = self.client.post(
+            reverse("tenant-create"),
+            {"full_name": "Should Not Be Created"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Tenant.objects.filter(full_name="Should Not Be Created").exists())
