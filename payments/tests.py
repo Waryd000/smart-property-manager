@@ -20,13 +20,13 @@ class PaymentVerificationTests(TestCase):
             is_staff=True,
         )
         landlord = Landlord.objects.create(full_name="Test Landlord")
-        prop = Property.objects.create(
+        self.property = Property.objects.create(
             landlord=landlord,
             name="Test property",
             address="Kampala",
         )
         unit = Unit.objects.create(
-            property=prop,
+            property=self.property,
             unit_number="A1",
             monthly_rent=Decimal("100000"),
             status="OCCUPIED",
@@ -47,6 +47,7 @@ class PaymentVerificationTests(TestCase):
         )
         self.payment = Payment.objects.create(
             tenant=self.tenant,
+            property=self.property,
             amount=Decimal("100000"),
             bank_reference="EQ-REF-001",
             status="PENDING",
@@ -104,6 +105,54 @@ class PaymentVerificationTests(TestCase):
 
         self.assertEqual(verified.unallocated_amount, Decimal("20000.00"))
         self.assertEqual(self.charge.amount_paid, Decimal("100000.00"))
+
+    def test_payment_only_allocates_to_its_selected_property(self):
+        other_property = Property.objects.create(
+            landlord=self.property.landlord,
+            name="Other property",
+            address="Other Kampala address",
+        )
+        other_unit = Unit.objects.create(
+            property=other_property,
+            unit_number="B1",
+            monthly_rent=Decimal("100000"),
+            status="OCCUPIED",
+        )
+        other_tenancy = Tenancy.objects.create(
+            tenant=self.tenant,
+            unit=other_unit,
+            start_date=date(2026, 1, 1),
+            monthly_rent=Decimal("100000"),
+            status="ACTIVE",
+        )
+        other_charge = RentCharge.objects.create(
+            tenancy=other_tenancy,
+            billing_month=date(2026, 1, 1),
+            amount=Decimal("100000"),
+            due_date=date(2026, 1, 6),
+        )
+
+        self.payment.amount = Decimal("120000")
+        self.payment.save(update_fields=["amount"])
+        self.add_bank_transaction(Decimal("120000"))
+        verified = verify_and_allocate(self.payment, self.user)
+
+        self.charge.refresh_from_db()
+        other_charge.refresh_from_db()
+        self.assertEqual(self.charge.amount_paid, Decimal("100000.00"))
+        self.assertEqual(other_charge.amount_paid, Decimal("0.00"))
+        self.assertEqual(verified.unallocated_amount, Decimal("20000.00"))
+
+    def test_unassigned_payment_cannot_be_verified(self):
+        self.payment.property = None
+        self.payment.save(update_fields=["property"])
+        self.add_bank_transaction()
+
+        with self.assertRaisesMessage(ValueError, "Assign this payment to a property"):
+            verify_and_allocate(self.payment, self.user)
+
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, "PENDING")
 
     def test_verified_payment_is_idempotent(self):
         self.add_bank_transaction()
