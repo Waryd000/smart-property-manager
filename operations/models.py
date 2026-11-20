@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -48,7 +50,7 @@ class Expense(TimeStampedModel):
     property = models.ForeignKey(Property, on_delete=models.PROTECT, related_name="expenses")
     category = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
-    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator("0.01")])
+    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
     incurred_on = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS, default="PENDING")
     approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="approved_expenses")
