@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import DecimalField, F, Sum, Value
+from django.db.models import DecimalField, F, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.db import connection
 from django.db.utils import OperationalError
@@ -32,7 +32,10 @@ def dashboard(request):
         RentCharge.objects.filter(tenancy__unit__property__in=properties)
         .annotate(
             allocated_total=Coalesce(
-                Sum("allocations__allocated_amount"),
+                Sum(
+                "allocations__allocated_amount",
+                filter=Q(allocations__reversed_at__isnull=True),
+            ),
                 Value(Decimal("0.00")),
                 output_field=DecimalField(max_digits=14, decimal_places=2),
             )
