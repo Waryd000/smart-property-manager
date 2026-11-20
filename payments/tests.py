@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
 
+from accounts.models import StaffProfile
 from payments.models import BankTransaction, Payment, PaymentAllocation
 from payments.services import import_equity_statement_row, verify_and_allocate
 from properties.models import Landlord, Property, Unit
@@ -322,4 +323,58 @@ class BankStatementImportViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(BankTransaction.objects.count(), 0)
+
+
+    def test_staff_profile_cannot_import_even_when_django_is_staff(self):
+        staff = get_user_model().objects.create_user(
+            username="statement-ordinary-staff",
+            password="test-password",
+            is_staff=True,
+        )
+        StaffProfile.objects.create(user=staff, role="STAFF", is_active=True)
+        self.client.force_login(staff)
+
+        response = self.client.post(
+            self.url,
+            {
+                "statement_file": self.upload(
+                    "reference,transaction_date,amount\\n"
+                    "EQ-STAFF-001,2026-11-20T10:15:00+03:00,50000"
+                ),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(BankTransaction.objects.count(), 0)
+
+    def test_duplicate_csv_headers_are_rejected(self):
+        self.client.force_login(self.manager)
+        response = self.client.post(
+            self.url,
+            {
+                "statement_file": self.upload(
+                    "reference,transaction_date,amount,amount\\n"
+                    "EQ-DUP-HEADER,2026-11-20T10:15:00+03:00,50000,50000"
+                ),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(BankTransaction.objects.count(), 0)
+        self.assertContains(response, "duplicate column headings")
+
+    def test_malformed_csv_is_rejected_without_importing_rows(self):
+        self.client.force_login(self.manager)
+        response = self.client.post(
+            self.url,
+            {
+                "statement_file": self.upload(
+                    'reference,transaction_date,amount\\n'
+                    '"EQ-BAD-CSV,2026-11-20T10:15:00+03:00,50000'
+                ),
+            },
+            follow=True,
+        )
+
         self.assertEqual(BankTransaction.objects.count(), 0)
