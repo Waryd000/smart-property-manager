@@ -83,7 +83,7 @@
     </nav>
     <div class="spm-nav-label mt-4">Administration</div>
     <nav>
-      {% if request.user.is_staff %}
+      {% if is_manager_account %}
       <a class="spm-nav-link" href="/staff/"><i class="bi bi-person-gear"></i> Staff management</a>
       {% endif %}
       {% if request.user.is_superuser %}
@@ -113,7 +113,7 @@
           <li><a class="dropdown-item rounded-2" href="/payments/"><i class="bi bi-wallet2 me-2"></i>Payments</a></li>
           <li><a class="dropdown-item rounded-2" href="/operations/maintenance/"><i class="bi bi-tools me-2"></i>Maintenance</a></li>
           <li><a class="dropdown-item rounded-2" href="/operations/expenses/"><i class="bi bi-receipt-cutoff me-2"></i>Expenses</a></li>
-          {% if request.user.is_staff %}<li><a class="dropdown-item rounded-2" href="/staff/"><i class="bi bi-person-gear me-2"></i>Staff management</a></li>{% endif %}
+          {% if is_manager_account %}<li><a class="dropdown-item rounded-2" href="/staff/"><i class="bi bi-person-gear me-2"></i>Staff management</a></li>{% endif %}
           {% if request.user.is_superuser %}<li><hr class="dropdown-divider"></li><li><a class="dropdown-item rounded-2" href="/admin/"><i class="bi bi-gear me-2"></i>Admin settings</a></li>{% endif %}
         </ul>
       </div>
