@@ -12,7 +12,10 @@ class RentCharge(TimeStampedModel):
     status=models.CharField(max_length=20,choices=STATUS,default="UNPAID")
     class Meta: unique_together=("tenancy","billing_month"); ordering=("due_date",)
     @property
-    def amount_paid(self): return self.allocations.aggregate(v=models.Sum("allocated_amount"))["v"] or Decimal("0.00")
+    def amount_paid(self):
+        return self.allocations.filter(reversed_at__isnull=True).aggregate(
+            v=models.Sum("allocated_amount")
+        )["v"] or Decimal("0.00")
     @property
     def balance(self): return self.amount-self.amount_paid
     def refresh_status(self):
