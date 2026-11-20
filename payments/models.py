@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 
 from core.models import TimeStampedModel
 from properties.models import Property
@@ -70,6 +72,14 @@ class Payment(TimeStampedModel):
                         "The payment amount must match the imported bank transaction."
                     )
                 if (
+                    self.payment_date
+                    and timezone.localdate(self.payment_date)
+                    != timezone.localdate(bank_transaction.transaction_date)
+                ):
+                    errors["payment_date"] = (
+                        "The payment date must match the bank transaction date."
+                    )
+                if (
                     bank_transaction.matched_payment_id is not None
                     and bank_transaction.matched_payment_id != self.pk
                 ):
@@ -107,7 +117,11 @@ class BankTransaction(TimeStampedModel):
     bank_name = models.CharField(max_length=80, default="Equity Bank Uganda")
     bank_reference = models.CharField(max_length=120, unique=True)
     transaction_date = models.DateTimeField()
-    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+    )
     narrative = models.CharField(max_length=255, blank=True)
     matched_payment = models.OneToOneField(
         Payment,
@@ -116,3 +130,11 @@ class BankTransaction(TimeStampedModel):
         on_delete=models.PROTECT,
     )
     reconciliation_status = models.CharField(max_length=20, default="UNMATCHED")
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(amount__gt=0),
+                name="bank_transaction_amount_positive",
+            )
+        ]
