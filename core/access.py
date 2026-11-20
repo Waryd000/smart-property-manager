@@ -12,20 +12,22 @@ def staff_profile_for(user):
 
 
 def is_manager(user):
-    """Return whether an authenticated, active account has manager privileges."""
+    """Return whether an authenticated, active account has manager privileges.
+
+    When a StaffProfile exists, its role is authoritative. Django's is_staff
+    flag alone must not promote an ordinary property staff member to manager.
+    Accounts without a StaffProfile retain legacy superuser/admin behavior.
+    """
     if not user.is_authenticated or not user.is_active:
         return False
 
     profile = staff_profile_for(user)
-    # A disabled profile must not keep administrative access via is_staff.
-    if profile is not None and not profile.is_active:
-        return False
+    if profile is not None:
+        if not profile.is_active:
+            return False
+        return bool(user.is_superuser or profile.role == "MANAGER")
 
-    return bool(
-        user.is_superuser
-        or user.is_staff
-        or (profile is not None and profile.role == "MANAGER")
-    )
+    return bool(user.is_superuser or user.is_staff)
 
 
 def visible_properties(user):
