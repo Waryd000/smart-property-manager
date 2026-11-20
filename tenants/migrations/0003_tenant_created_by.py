@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("tenants", "0002_unique_active_tenancy_per_unit"),
+        ("tenants", "0003_active_tenancy_requires_start_date"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
