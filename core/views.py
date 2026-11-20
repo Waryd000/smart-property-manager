@@ -3,7 +3,10 @@ from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.db.models import DecimalField, F, Sum, Value
 from django.db.models.functions import Coalesce
+from django.db import connection
+from django.db.utils import OperationalError
 from django.db.models import Prefetch
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -92,3 +95,12 @@ def dashboard(request):
         "spreadsheet_review_flags": spreadsheet_review_flags,
     }
     return render(request, "core/dashboard.html", context)
+
+
+def health_check(request):
+    """Minimal readiness endpoint; reveal no settings, secrets or query data."""
+    try:
+        connection.ensure_connection()
+    except OperationalError:
+        return JsonResponse({"status": "unavailable"}, status=503)
+    return JsonResponse({"status": "ok", "database": "ok"})
