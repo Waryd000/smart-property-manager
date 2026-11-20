@@ -13,6 +13,7 @@ from operations.models import AuditLog
 from .services import import_equity_statement_row, verify_and_allocate
 
 
+
 @login_required
 def payment_list(request):
     payments = Payment.objects.select_related("tenant", "property")
@@ -89,6 +90,18 @@ def bank_statement_import(request):
 
                 if row_count == 0:
                     raise ValueError("The CSV contains no transaction rows.")
+                AuditLog.objects.create(
+                    user=request.user,
+                    action="BANK_STATEMENT_IMPORTED",
+                    model_name="BankTransaction",
+                    details={
+                        "file_name": uploaded.name[:255],
+                        "new_transactions": created_count,
+                        "identical_duplicates_skipped": duplicate_count,
+                        "rows_processed": row_count,
+                    },
+                    ip_address=request.META.get("REMOTE_ADDR") or None,
+                )
 
             messages.success(
                 request,
