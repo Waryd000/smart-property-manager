@@ -49,25 +49,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Generate initial schema migrations for CI
-        run: python manage.py makemigrations accounts properties tenants rent payments operations --noinput
+      - name: Check committed migrations match current models
+        run: python manage.py makemigrations --check --dry-run
       - name: Check Django configuration
         run: python manage.py check
       - name: Apply database migrations
         run: python manage.py migrate --noinput
       - name: Run automated tests
         run: python manage.py test --verbosity=2
-      - name: Upload generated migrations for review and commit
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: spm-generated-migrations
-          path: |
-            accounts/migrations/*.py
-            properties/migrations/*.py
-            tenants/migrations/*.py
-            rent/migrations/*.py
-            payments/migrations/*.py
-            operations/migrations/*.py
-          if-no-files-found: warn
-          retention-days: 7
