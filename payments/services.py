@@ -169,3 +169,92 @@ def import_equity_statement_row(row):
                 "This bank reference already exists with a different amount or date."
             )
         return existing, False
+
+
+@transaction.atomic
+def reverse_verified_payment(payment, user, reason):
+    """Soft-reverse a verified payment without deleting financial history."""
+    from core.access import is_manager
+
+    if not is_manager(user):
+        raise ValueError("Only an active manager can reverse a verified payment.")
+    reason = str(reason or "").strip()
+    if not reason:
+        raise ValueError("A reversal reason is required.")
+    if len(reason) > 1000:
+        raise ValueError("The reversal reason must be 1,000 characters or fewer.")
+
+    payment = Payment.objects.select_for_update().get(pk=payment.pk)
+    if payment.status != "VERIFIED":
+        raise ValueError("Only verified payments can be reversed.")
+
+    bank_transaction = (
+        BankTransaction.objects.select_for_update()
+        .filter(matched_payment=payment)
+        .first()
+    )
+    if bank_transaction is None:
+        raise ValueError(
+            "The verified payment has no matched bank transaction. "
+            "Escalate this record for manual reconciliation."
+        )
+
+    allocations = list(
+        PaymentAllocation.objects.select_for_update()
+        .select_related("rent_charge")
+        .filter(payment=payment, reversed_at__isnull=True)
+        .order_by("pk")
+    )
+    now = timezone.now()
+    charges_to_refresh = {}
+    reversed_allocated = Decimal("0.00")
+    for allocation in allocations:
+        reversed_allocated += allocation.allocated_amount
+        allocation.reversed_at = now
+        allocation.reversed_by = user
+        allocation.reversal_reason = reason
+        allocation.save(
+            update_fields=[
+                "reversed_at", "reversed_by", "reversal_reason", "updated_at"
+            ]
+        )
+        charges_to_refresh[allocation.rent_charge_id] = allocation.rent_charge
+
+    for charge in charges_to_refresh.values():
+        charge.refresh_status()
+
+    previous_unallocated = payment.unallocated_amount
+    payment.status = "REVERSED"
+    payment.reversed_at = now
+    payment.reversed_by = user
+    payment.reversal_reason = reason
+    payment.unallocated_amount = Decimal("0.00")
+    payment.save(
+        update_fields=[
+            "status", "reversed_at", "reversed_by", "reversal_reason",
+            "unallocated_amount", "updated_at",
+        ]
+    )
+
+    # Keep the one-to-one link to prevent this bank transaction being reused.
+    bank_transaction.reconciliation_status = "REVERSED"
+    bank_transaction.save(update_fields=["reconciliation_status", "updated_at"])
+
+    AuditLog.objects.create(
+        user=user,
+        action="PAYMENT_REVERSED",
+        model_name="Payment",
+        record_id=str(payment.pk),
+        details={
+            "bank_reference": payment.bank_reference,
+            "amount": str(payment.amount),
+            "property_id": payment.property_id,
+            "tenant_id": payment.tenant_id,
+            "reversed_allocated_amount": str(reversed_allocated),
+            "previous_unallocated_amount": str(previous_unallocated),
+            "reason": reason,
+            "bank_transaction_id": bank_transaction.pk,
+            "reversed_allocation_count": len(allocations),
+        },
+    )
+    return payment
