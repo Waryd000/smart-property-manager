@@ -378,3 +378,108 @@ class BankStatementImportViewTests(TestCase):
         )
 
         self.assertEqual(BankTransaction.objects.count(), 0)
+
+
+class PaymentRecordViewTests(TestCase):
+    def setUp(self):
+        self.manager = get_user_model().objects.create_user(
+            username="payment-record-manager",
+            password="test-password",
+            is_staff=True,
+        )
+        landlord = Landlord.objects.create(full_name="Record Payment Landlord")
+        self.property = Property.objects.create(
+            landlord=landlord,
+            name="Record Payment Property",
+            address="Kampala",
+        )
+        unit = Unit.objects.create(
+            property=self.property,
+            unit_number="P1",
+            monthly_rent=Decimal("180000"),
+            status="OCCUPIED",
+        )
+        self.tenant = Tenant.objects.create(full_name="Payment Form Tenant")
+        Tenancy.objects.create(
+            tenant=self.tenant,
+            unit=unit,
+            start_date=date(2026, 1, 1),
+            monthly_rent=Decimal("180000"),
+            status="ACTIVE",
+        )
+        self.url = reverse("payment-create")
+
+    def form_data(self, **overrides):
+        data = {
+            "tenant": self.tenant.pk,
+            "property": self.property.pk,
+            "amount": "180000.00",
+            "bank_reference": "EQ-NEW-REF-001",
+            "payment_date": "2026-11-20T10:00",
+            "source_note": "Manager entered after checking tenant receipt",
+        }
+        data.update(overrides)
+        return data
+
+    def test_manager_can_record_pending_payment(self):
+        self.client.force_login(self.manager)
+
+        response = self.client.post(self.url, self.form_data())
+
+        self.assertEqual(response.status_code, 302)
+        payment = Payment.objects.get(bank_reference="EQ-NEW-REF-001")
+        self.assertEqual(payment.status, "PENDING")
+        self.assertIsNone(payment.verified_at)
+        self.assertEqual(payment.property, self.property)
+        self.assertTrue(
+            __import__("operations.models", fromlist=["AuditLog"]).AuditLog.objects.filter(
+                model_name="Payment",
+                record_id=str(payment.pk),
+                action="PAYMENT_RECORDED_PENDING",
+            ).exists()
+        )
+
+    def test_payment_form_rejects_tenant_from_another_property(self):
+        other_property = Property.objects.create(
+            landlord=self.property.landlord,
+            name="Unrelated Payment Property",
+            address="Kampala",
+        )
+        other_unit = Unit.objects.create(
+            property=other_property,
+            unit_number="P2",
+            monthly_rent=Decimal("180000"),
+            status="OCCUPIED",
+        )
+        other_tenant = Tenant.objects.create(full_name="Other Property Tenant")
+        Tenancy.objects.create(
+            tenant=other_tenant,
+            unit=other_unit,
+            start_date=date(2026, 1, 1),
+            monthly_rent=Decimal("180000"),
+            status="ACTIVE",
+        )
+        self.client.force_login(self.manager)
+
+        response = self.client.post(
+            self.url,
+            self.form_data(tenant=other_tenant.pk),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Payment.objects.count(), 0)
+        self.assertContains(response, "no tenancy in the selected property")
+
+    def test_non_manager_cannot_record_payment_even_with_django_is_staff(self):
+        staff = get_user_model().objects.create_user(
+            username="payment-record-staff",
+            password="test-password",
+            is_staff=True,
+        )
+        StaffProfile.objects.create(user=staff, role="STAFF", is_active=True)
+        self.client.force_login(staff)
+
+        response = self.client.post(self.url, self.form_data())
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Payment.objects.count(), 0)
