@@ -1,0 +1,57 @@
+name: Django CI
+
+on:
+  push:
+    branches: [main, "loop/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: smart_property_manager
+          POSTGRES_USER: spm_user
+          POSTGRES_PASSWORD: ci-test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U spm_user -d smart_property_manager"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      SECRET_KEY: ci-only-not-for-production
+      DEBUG: "False"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DB_NAME: smart_property_manager
+      DB_USER: spm_user
+      DB_PASSWORD: ci-test-password
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      TIME_ZONE: Africa/Kampala
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Check Django configuration
+        run: python manage.py check
+      - name: Create development schema for apps without committed migrations
+        run: python manage.py migrate --run-syncdb --noinput
+      - name: Run test suite
+        run: python manage.py test --verbosity 2
