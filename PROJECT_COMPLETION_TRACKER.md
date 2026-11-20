@@ -34,7 +34,7 @@ This tracker records verified repository work separately from local-user actions
 | Management fees and landlord statements | Minimal ManagementFee model exists; invoicing, receipts, balances, remittance and statements are not implemented. | Not complete |
 | Audit and reporting | AuditLog model exists, but important changes are not yet consistently written to it; reports/export screens remain. | Not complete |
 | Notifications | No complete SMS/email provider, consent, delivery log, retries or templates. | Not complete |
-| Migrations and schema lifecycle | No migration files were present in the audited `main` Git tree. CI now generates initial migrations in its ephemeral runner, applies them and uploads them as a review artifact. Those migration files must be reviewed and committed into the repository before production or any fresh environment setup. | Blocker |
+| Migrations and schema lifecycle | Initial migrations for accounts, properties, tenants, rent, payments and operations are now committed. CI checks that migrations match current models and applies them to a fresh PostgreSQL service. Test run confirmation remains pending. | In progress |
 | Automated testing | Existing tests were very limited; dashboard isolation and payment reconciliation tests added on current branch. A PostgreSQL CI workflow was added but has not yet reported a green run. | In progress |
 | Production security | Current settings need production-only security headers/cookies, strict CSRF origins, HTTPS proxy configuration, secrets policy, file upload validation, backup/restore and security testing. | Not complete |
 | Cloud VPS deployment | No deployment scripts, web server/systemd configuration, domain or VPS access details available. | Blocked |
