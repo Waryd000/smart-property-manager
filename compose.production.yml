@@ -4,8 +4,6 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    env_file:
-      - .env.production
     environment:
       POSTGRES_DB: ${DB_NAME:?Set DB_NAME in .env.production}
       POSTGRES_USER: ${DB_USER:?Set DB_USER in .env.production}
