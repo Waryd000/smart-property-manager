@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import StaffProfile
+from core.access import is_manager
 from payments.models import Payment
 from properties.models import Landlord, Property, PropertyAssignment, Unit
 from rent.models import RentCharge
@@ -52,11 +53,7 @@ class DashboardPortfolioAccessTests(TestCase):
             name=property_name,
             address="Test address",
         )
-        notes = (
-            f"Source: test register. {review_note}"
-            if review_note
-            else ""
-        )
+        notes = f"Source: test register. {review_note}" if review_note else ""
         unit = Unit.objects.create(
             property=prop,
             unit_number=unit_number,
@@ -118,8 +115,7 @@ class DashboardPortfolioAccessTests(TestCase):
         self.assertEqual(len(response.context["spreadsheet_review_flags"]), 1)
 
     def test_inactive_staff_profile_cannot_retain_property_access(self):
-        User = get_user_model()
-        inactive_staff = User.objects.create_user(
+        inactive_staff = get_user_model().objects.create_user(
             username="inactive-staff",
             password="test-password",
             is_staff=True,
@@ -144,3 +140,39 @@ class DashboardPortfolioAccessTests(TestCase):
         self.assertEqual(response.context["outstanding"], Decimal("0.00"))
         self.assertEqual(len(response.context["recent_payments"]), 0)
         self.assertEqual(len(response.context["spreadsheet_review_flags"]), 0)
+
+    def test_staff_profile_role_overrides_django_is_staff_flag(self):
+        elevated_staff = get_user_model().objects.create_user(
+            username="role-staff",
+            password="test-password",
+            is_staff=True,
+        )
+        StaffProfile.objects.create(user=elevated_staff, role="STAFF", is_active=True)
+
+        self.assertFalse(is_manager(elevated_staff))
+
+    def test_staff_profile_role_cannot_access_global_admin(self):
+        elevated_staff = get_user_model().objects.create_user(
+            username="blocked-admin",
+            password="test-password",
+            is_staff=True,
+        )
+        StaffProfile.objects.create(user=elevated_staff, role="STAFF", is_active=True)
+        self.client.force_login(elevated_staff)
+
+        response = self.client.get(reverse("admin:index"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_profile_manager_can_use_manager_features_without_django_is_staff(self):
+        profile_manager = get_user_model().objects.create_user(
+            username="profile-manager",
+            password="test-password",
+            is_staff=False,
+        )
+        StaffProfile.objects.create(user=profile_manager, role="MANAGER", is_active=True)
+
+        self.assertTrue(is_manager(profile_manager))
+        self.assertEqual(
+            list(__import__("core.access", fromlist=["visible_properties"]).visible_properties(profile_manager)),
+            list(Property.objects.all()),
+        )
