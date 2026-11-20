@@ -30,12 +30,18 @@
             {% if p.status == "VERIFIED" %}<span class="badge rounded-pill text-bg-success-subtle text-success-emphasis">Verified</span>
             {% elif p.status == "PENDING" %}<span class="badge rounded-pill text-bg-warning-subtle text-warning-emphasis">Pending</span>
             {% elif p.status == "REJECTED" %}<span class="badge rounded-pill text-bg-danger-subtle text-danger-emphasis">Rejected</span>
+            {% elif p.status == "REVERSED" %}<span class="badge rounded-pill text-bg-dark">Reversed</span>
             {% else %}<span class="badge rounded-pill text-bg-secondary-subtle text-secondary-emphasis">{{ p.get_status_display }}</span>{% endif %}
           </td>
           <td>
             {% if p.status == "PENDING" and p.property %}
             <form method="post" action="{% url 'verify-payment' p.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success"><i class="bi bi-check2-circle me-1"></i>Verify & allocate</button></form>
             {% elif p.status == "PENDING" %}<span class="text-secondary small">Assign property first</span>
+            {% elif can_manage and p.status == "VERIFIED" %}
+              <form method="post" action="{% url 'reverse-payment' p.pk %}" class="d-flex flex-wrap gap-1">{% csrf_token %}
+                <input type="text" name="reason" class="form-control form-control-sm" placeholder="Reason for reversal" required maxlength="1000">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Reverse</button>
+              </form>
             {% else %}<span class="text-secondary small">No action</span>{% endif %}
           </td>
         </tr>
