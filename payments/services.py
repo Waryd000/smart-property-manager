@@ -9,18 +9,22 @@ from rent.models import RentCharge
 
 @transaction.atomic
 def verify_and_allocate(payment, user):
-    """Verify a payment only after matching it to an imported bank transaction.
+    """Verify a payment only after an exact bank and property match.
 
-    Matching is exact on the bank reference and amount. Allocation is applied
-    to the tenant's oldest outstanding charges. Any overpayment remains
-    explicitly unallocated and can be handled by a future credit/refund flow.
+    Rent is allocated only to the named tenant's oldest outstanding charges
+    within the property's scope. Any remainder stays visibly unallocated.
     """
-    payment = Payment.objects.select_for_update().get(pk=payment.pk)
+    payment = Payment.objects.select_for_update().select_related("property").get(pk=payment.pk)
 
     if payment.status == "VERIFIED":
         return payment
     if payment.status != "PENDING":
         raise ValueError("Only pending payments can be verified")
+    if not payment.property_id:
+        raise ValueError(
+            "Assign this payment to a property before verification. "
+            "Unassigned payments must be reviewed by a manager."
+        )
 
     bank_transaction = (
         BankTransaction.objects.select_for_update()
@@ -43,11 +47,12 @@ def verify_and_allocate(payment, user):
         raise ValueError("This bank transaction is already matched to another payment.")
 
     remaining = payment.amount
-
-    # Allocate oldest outstanding rent charges for this tenant first.
     charges = (
         RentCharge.objects.select_for_update()
-        .filter(tenancy__tenant=payment.tenant)
+        .filter(
+            tenancy__tenant=payment.tenant,
+            tenancy__unit__property_id=payment.property_id,
+        )
         .exclude(status="PAID")
         .order_by("due_date", "id")
     )
@@ -78,8 +83,6 @@ def verify_and_allocate(payment, user):
         update_fields=["matched_payment", "reconciliation_status", "updated_at"]
     )
 
-    # Convenience value for messages and the payment detail screen. The
-    # authoritative unallocated figure is also derivable from allocations.
     payment.unallocated_amount = remaining
     return payment
 
