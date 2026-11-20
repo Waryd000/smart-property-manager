@@ -176,3 +176,11 @@ class DashboardPortfolioAccessTests(TestCase):
             list(__import__("core.access", fromlist=["visible_properties"]).visible_properties(profile_manager)),
             list(Property.objects.all()),
         )
+
+
+class HealthCheckTests(TestCase):
+    def test_health_check_returns_minimal_database_readiness(self):
+        response = self.client.get(reverse("health-check"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "ok", "database": "ok"})
