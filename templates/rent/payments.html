@@ -6,6 +6,9 @@
   <h1 class="spm-page-title">Bank payments</h1>
   <p class="spm-subtitle">Review payment entries and their verification status.</p>
 </div>
+{% if can_manage %}
+<div class="mb-3"><a href="{% url 'bank-statement-import' %}" class="btn btn-primary"><i class="bi bi-cloud-arrow-up me-2"></i>Import bank statement</a></div>
+{% endif %}
 <div class="alert alert-info border-0 rounded-3 small mb-4"><i class="bi bi-shield-check me-2"></i>Only verify payments after matching them to genuine bank-originated transaction records. A tenant screenshot alone is not proof of receipt.</div>
 <section class="spm-card overflow-hidden">
   <div class="p-3 p-lg-4 border-bottom"><h2 class="h5 fw-bold mb-1">Payment records</h2><p class="small text-secondary mb-0">Payment verification and allocation workflow</p></div>
