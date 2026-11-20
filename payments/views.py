@@ -41,15 +41,18 @@ def bank_statement_import(request):
             except UnicodeDecodeError as exc:
                 raise ValueError("The CSV must use UTF-8 text encoding.") from exc
 
-            reader = csv.DictReader(io.StringIO(text))
+            reader = csv.DictReader(io.StringIO(text), strict=True)
             if not reader.fieldnames:
                 raise ValueError("The CSV file is empty or has no header row.")
 
-            normalized_headers = {
+            header_names = [
                 str(name).strip().lower()
                 for name in reader.fieldnames
                 if name is not None
-            }
+            ]
+            if len(header_names) != len(set(header_names)):
+                raise ValueError("The CSV contains duplicate column headings.")
+            normalized_headers = set(header_names)
             required_headers = {"reference", "transaction_date", "amount"}
             missing = sorted(required_headers - normalized_headers)
             if missing:
@@ -62,6 +65,8 @@ def bank_statement_import(request):
             row_count = 0
             with transaction.atomic():
                 for line_number, source_row in enumerate(reader, start=2):
+                    if None in source_row:
+                        raise ValueError(f"CSV row {line_number}: unexpected extra column values.")
                     row = {
                         str(key).strip().lower(): (value or "").strip()
                         for key, value in source_row.items()
@@ -90,8 +95,8 @@ def bank_statement_import(request):
                 f"{duplicate_count} identical existing transactions skipped.",
             )
             return redirect("payment-list")
-        except ValueError as exc:
-            messages.error(request, str(exc))
+        except (ValueError, csv.Error) as exc:
+            messages.error(request, str(exc) or "The CSV file could not be parsed.")
 
     return render(request, "payments/bank_import.html", {"form": form})
 
