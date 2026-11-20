@@ -12,7 +12,7 @@ from tenants.models import Tenancy
 @transaction.atomic
 def verify_and_allocate(payment, user):
     """Verify an exact bank match and allocate only within the payment property."""
-    payment = Payment.objects.select_for_update().select_related("property").get(pk=payment.pk)
+    payment = Payment.objects.select_for_update().get(pk=payment.pk)
 
     if payment.status == "VERIFIED":
         return payment
