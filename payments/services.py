@@ -14,7 +14,7 @@ def verify_and_allocate(payment, user):
     Rent is allocated only to the named tenant's oldest outstanding charges
     within the property's scope. Any remainder stays visibly unallocated.
     """
-    payment = Payment.objects.select_for_update().select_related("property").get(pk=payment.pk)
+    payment = Payment.objects.select_for_update().get(pk=payment.pk)
 
     if payment.status == "VERIFIED":
         return payment
