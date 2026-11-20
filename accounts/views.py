@@ -20,7 +20,7 @@ def staff_list(request):
         "user__property_assignments__property"
     )
     if not request.user.is_superuser:
-        profiles = profiles.exclude(user__is_superuser=True)
+        profiles = profiles.exclude(user__is_superuser=True).exclude(role="MANAGER")
     return render(request, "accounts/staff_list.html", {"profiles": profiles})
 
 
@@ -74,7 +74,7 @@ def staff_update(request, pk):
         "user__property_assignments"
     )
     if not request.user.is_superuser:
-        profile_qs = profile_qs.exclude(user__is_superuser=True)
+        profile_qs = profile_qs.exclude(user__is_superuser=True).exclude(role="MANAGER")
     profile = get_object_or_404(profile_qs, pk=pk)
 
     initial = {
