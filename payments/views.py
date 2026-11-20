@@ -9,14 +9,10 @@ from .services import verify_and_allocate
 
 @login_required
 def payment_list(request):
-    payments = (
-        Payment.objects.select_related("tenant")
-        .filter(
-            tenant__tenancies__unit__property__in=visible_properties(request.user)
-        )
-        .distinct()
-        .order_by("-created_at")
-    )
+    payments = Payment.objects.select_related("tenant", "property")
+    if not is_manager(request.user):
+        payments = payments.filter(property__in=visible_properties(request.user))
+    payments = payments.order_by("-created_at")
     return render(request, "rent/payments.html", {"payments": payments})
 
 
@@ -30,10 +26,20 @@ def verify_payment(request, pk):
         return redirect("payment-list")
 
     payment = get_object_or_404(
-        Payment.objects.select_related("tenant"),
+        Payment.objects.select_related("tenant", "property"),
         pk=pk,
-        tenant__tenancies__unit__property__in=visible_properties(request.user),
     )
+    if not payment.property_id:
+        messages.error(
+            request,
+            "Assign this payment to a property before verification.",
+        )
+        return redirect("payment-list")
+
+    if not visible_properties(request.user).filter(pk=payment.property_id).exists():
+        messages.error(request, "You do not have access to this property's payments.")
+        return redirect("payment-list")
+
     try:
         verified = verify_and_allocate(payment, request.user)
         unallocated = getattr(verified, "unallocated_amount", None)
