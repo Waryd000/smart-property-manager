@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
+from django.db.models import Prefetch
 from django.shortcuts import render, redirect
 
 from core.access import visible_properties
@@ -12,16 +13,25 @@ from .forms import TenantForm, TenancyForm
 @login_required
 def tenant_list(request):
     allowed = visible_properties(request.user)
+    visible_tenancies = (
+        Tenancy.objects.filter(unit__property__in=allowed)
+        .select_related("unit", "unit__property")
+        .order_by("unit__property__name", "unit__unit_number")
+    )
     tenants = (
         Tenant.objects.filter(tenancies__unit__property__in=allowed)
         .distinct()
-        .prefetch_related("tenancies__unit__property")
+        .prefetch_related(Prefetch("tenancies", queryset=visible_tenancies))
     )
     return render(request, "tenants/list.html", {"tenants": tenants})
 
 
 @login_required
 def tenant_create(request):
+    if not visible_properties(request.user).exists():
+        messages.error(request, "You need access to a property before adding tenants.")
+        return redirect("dashboard")
+
     form = TenantForm(request.POST or None)
     if form.is_valid():
         form.save()
