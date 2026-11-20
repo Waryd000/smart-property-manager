@@ -134,15 +134,16 @@ class StaffAdministrationTests(TestCase):
             [self.property_two.pk],
         )
 
-    def test_manager_cannot_deactivate_own_account(self):
+    def test_non_superuser_manager_cannot_edit_manager_profile_or_self_deactivate(self):
         profile = StaffProfile.objects.create(
             user=self.manager, role="MANAGER", is_active=True
         )
         self.client.force_login(self.manager)
+
         response = self.client.post(
             reverse("staff-update", args=[profile.pk]),
             {
-                "first_name": "",
+                "first_name": "Changed",
                 "last_name": "",
                 "email": "",
                 "phone": "",
@@ -152,9 +153,10 @@ class StaffAdministrationTests(TestCase):
             },
         )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
         self.manager.refresh_from_db()
         self.assertTrue(self.manager.is_active)
+        self.assertTrue(profile.is_active)
 
     def test_manager_cannot_edit_superuser_staff_profile(self):
         superuser = get_user_model().objects.create_superuser(
