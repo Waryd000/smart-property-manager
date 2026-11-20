@@ -1,0 +1,157 @@
+name: smart-property-manager
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Set DB_NAME in .env.production}
+      POSTGRES_USER: ${DB_USER:?Set DB_USER in .env.production}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env.production}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [private]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [private]
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      MEDIA_ROOT: /app/media
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      USE_X_FORWARDED_PROTO: "True"
+      SECURE_SSL_REDIRECT: "True"
+      SESSION_COOKIE_SECURE: "True"
+      CSRF_COOKIE_SECURE: "True"
+    command: >-
+      sh -c "python manage.py migrate --noinput &&
+      python manage.py collectstatic --noinput &&
+      exec gunicorn config.wsgi:application --bind 0.0.0.0:8000
+      --workers 3 --timeout 60 --access-logfile - --error-logfile -"
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; r=urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/healthz/', headers={'X-Forwarded-Proto':'https'}), timeout=5); raise SystemExit(0 if r.status == 200 else 1)"
+      interval: 30s
+      timeout: 8s
+      retries: 5
+      start_period: 60s
+    expose:
+      - "8000"
+    security_opt:
+      - no-new-privileges:true
+    networks: [private]
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      MEDIA_ROOT: /app/media
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    command: ["celery", "-A", "config", "worker", "--loglevel=INFO", "--concurrency=2"]
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      web:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    networks: [private]
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    command: ["celery", "-A", "config", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+    depends_on:
+      web:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    networks: [private]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env.production}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - static_data:/srv/static:ro
+    depends_on:
+      web:
+        condition: service_healthy
+    networks: [private]
+
+networks:
+  private:
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_data:
+  media_data:
+  caddy_data:
+  caddy_config:
